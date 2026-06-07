@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Boards — TeamBoard</title>
+    <link rel="stylesheet" href="/static/css/boards.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Boards</h1>
+
+        <div id="user-info"></div>
+    </div>
+
+    <div class="create-board">
+
+        <input
+            id="title"
+            type="text"
+            placeholder="Board title"
+        >
+
+        <textarea
+            id="description"
+            placeholder="Board description"
+        ></textarea>
+
+        <label>
+            <input
+                id="is_public"
+                type="checkbox"
+            >
+            Public board
+        </label>
+
+        <button onclick="createBoard()">
+            Create Board
+        </button>
+
+    </div>
+
+    <hr>
+
+    <h2 id="boards-title">
+        My Boards
+    </h2>
+
+    <div id="boards">
+        Loading...
+    </div>
+
+</div>
+
+<script src="/static/js/auth.js"></script>
+<script src="/static/js/boards.js"></script>
+
+</body>
+</html>

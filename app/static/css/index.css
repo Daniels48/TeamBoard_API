@@ -1,0 +1,42 @@
+body {
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:#f5f6fa;
+}
+
+nav {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 40px;
+    background:#1f2937;
+    color:white;
+}
+
+nav .buttons button{
+    margin-left:10px;
+    padding:8px 14px;
+    border:none;
+    cursor:pointer;
+    border-radius:6px;
+}
+
+.login {background:#3b82f6;color:white;}
+.register {background:#10b981;color:white;}
+.profile {background:#6366f1;color:white;}
+.boards {background:#f59e0b;color:white;}
+.logout {background:#ef4444;color:white;}
+
+main{
+    text-align:center;
+    margin-top:120px;
+}
+
+h1{
+    font-size:40px;
+}
+
+p{
+    font-size:18px;
+    color:#555;
+}

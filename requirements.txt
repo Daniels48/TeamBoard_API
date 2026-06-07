@@ -4,8 +4,12 @@ SQLAlchemy
 asyncpg
 alembic
 python-jose[cryptography]
-passlib[bcrypt]
+passlib[argon2]
 python-dotenv
 psycopg2-binary
 pydantic-settings
 python-json-logger
+uuid6
+redis[async]
+pydantic[email]
+user-agents

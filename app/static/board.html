@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Board</title>
+    <link rel="stylesheet" href="/static/css/board.css">
+</head>
+
+<body>
+
+
+<div class="container">
+
+    <div class="board-header">
+        <h1 id="board-title"></h1>
+        <p id="board-description"></p>
+        <button  id="save-board-btn" onclick="saveBoard()">Save Changes</button>
+    </div>
+
+    <div class="create-column">
+        <input
+            id="column-title"
+            placeholder="Column title"
+        >
+
+        <button onclick="createColumn()">
+            Create Column
+        </button>
+    </div>
+
+    <div
+        id="columns"
+        class="columns"
+    ></div>
+
+</div>
+
+
+<script src="/static/js/auth.js"></script>
+<script src="/static/js/board.js"></script>
+
+</body>
+</html>

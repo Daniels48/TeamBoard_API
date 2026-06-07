@@ -1,18 +1,33 @@
 from datetime import datetime, timezone
 from enum import Enum
+from uuid6 import uuid7
+from uuid import UUID as PyUUID
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Boolean, DateTime, Enum as SqlEnum
+
+
 
 from app.db.base import Base
 
-now_dt = lambda: datetime.now(timezone.utc)
+from typing import TYPE_CHECKING
+
+
+
+if TYPE_CHECKING:
+    from app.db.models import UserSession
+
+
+def now_dt():
+    return datetime.now(timezone.utc)
+
 
 
 class UserRole(str, Enum):
     USER = "user"
     ADMIN = "admin"
-    MANAGER = "manager"
 
 
 class User(Base):
@@ -20,8 +35,16 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    username: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    public_id: Mapped[PyUUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        unique=True,
+        nullable=False,
+        default=uuid7,
+        index=True
+    )
+
+    username: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
     first_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     last_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
@@ -30,9 +53,33 @@ class User(Base):
 
     role: Mapped[UserRole] = mapped_column(SqlEnum(UserRole, name="user_role"), default=UserRole.USER, nullable=False)
 
-    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_dt, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),default=now_dt, onupdate=now_dt, nullable=False)
+    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True),nullable=True)
+
+    sessions: Mapped[list["UserSession"]] = relationship(
+        "UserSession",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
+    boards: Mapped[list["Board"]] = relationship(
+        "Board",
+        back_populates="owner",
+        cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (
+        UniqueConstraint("email", name="uq_users_email"),
+        UniqueConstraint("username", name="uq_users_username"),
+    )
+
+    @property
+    def is_verified(self) -> bool:
+        return self.email_verified_at is not None

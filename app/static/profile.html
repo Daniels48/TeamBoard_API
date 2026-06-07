@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Profile — TeamBoard</title>
+
+<style>
+body{
+    font-family:Arial;
+    background:#f4f6fa;
+    padding:40px;
+}
+
+.card{
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    max-width:400px;
+    margin:auto;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+h2{
+    margin-top:0;
+}
+
+button{
+    margin-top:20px;
+    padding:10px;
+    background:#3b82f6;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+
+.logout{
+    background:#ef4444;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>Your Profile</h2>
+
+<p><b>Username:</b> <span id="username"></span></p>
+<p><b>Email:</b> <span id="email"></span></p>
+<p><b>Role:</b> <span id="role"></span></p>
+<p><b>Created:</b> <span id="created"></span></p>
+
+<button onclick="goBoards()">My Boards</button>
+<button class="logout" onclick="logout()">Logout</button>
+
+</div>
+
+<script>
+
+const token = localStorage.getItem("access_token")
+
+if(!token){
+    window.location.href="/static/login.html"
+}
+
+async function loadProfile(){
+
+    const res = await fetch("/api/users/me",{
+        headers:{
+            "Authorization":"Bearer "+token
+        }
+    })
+
+    if(res.status===401){
+        window.location.href="/static/login.html"
+        return
+    }
+
+    const user = await res.json()
+
+    document.getElementById("username").innerText=user.username
+    document.getElementById("email").innerText=user.email
+    document.getElementById("role").innerText=user.role
+    document.getElementById("created").innerText=user.created_at
+}
+
+function logout(){
+
+    localStorage.removeItem("access_token")
+
+    fetch("/api/auth/logout",{
+        method:"POST",
+        credentials:"include"
+    })
+
+    window.location.href="/"
+}
+
+function goBoards(){
+    window.location.href="/static/boards.html"
+}
+
+loadProfile()
+
+</script>
+
+</body>
+</html>

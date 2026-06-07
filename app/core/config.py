@@ -2,7 +2,7 @@ from pathlib import Path
 from pydantic_settings import BaseSettings
 from pydantic import BaseModel
 
-from app.core.versions import get_git_version
+from app.core.observability.other_utils import get_git_version
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -20,9 +20,20 @@ class DbSettings(BaseModel):
 
 
 class SecuritySettings(BaseModel):
-    secret_key: str
+    jwt_secret: str
+    refresh_secret: str
+    email_secret: str
     algorithm: str
     access_token_expire_min: int = 30
+    refresh_token_expire_days: int = 7
+
+    @property
+    def access_token_expire_seconds(self) -> int:
+        return self.access_token_expire_min * 60
+
+    @property
+    def refresh_token_expire_seconds(self) -> int:
+        return self.refresh_token_expire_days * 24 * 60 * 60
 
 
 class Settings(BaseSettings):
@@ -30,7 +41,7 @@ class Settings(BaseSettings):
     security: SecuritySettings
     logging: LoggingSettings
 
-    version: str = get_git_version()  # 👈 добавляем сюда
+    version: str = get_git_version()
 
     model_config = {
         "env_file": BASE_DIR / ".env",
