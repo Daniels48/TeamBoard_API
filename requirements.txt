@@ -13,3 +13,4 @@ uuid6
 redis[async]
 pydantic[email]
 user-agents
+fastapi-mail

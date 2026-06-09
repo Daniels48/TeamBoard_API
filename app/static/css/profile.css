@@ -1,0 +1,31 @@
+body{
+    font-family:Arial;
+    background:#f4f6fa;
+    padding:40px;
+}
+
+.card{
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    max-width:400px;
+    margin:auto;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+h2{
+    margin-top:0;
+}
+
+button{
+    margin-top:20px;
+    padding:10px;
+    background:#3b82f6;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+
+.logout{
+    background:#ef4444;
+}

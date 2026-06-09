@@ -41,7 +41,7 @@ class UserSessionRepository:
         return result.scalar_one_or_none()
 
     @staticmethod
-    async def revoke_all(db: AsyncSession, user_id: int) -> None:
+    async def revoke_all_session(db: AsyncSession, user_id: int) -> None:
         stmt = (
             update(UserSession)
             .where(
@@ -72,23 +72,6 @@ class UserSessionRepository:
         await db.execute(
             update(UserSession)
             .where(UserSession.session_id == session_id)
-            .values(
-                is_revoked=True,
-                revoked_at=now_dt()
-            )
-        )
-
-    @staticmethod
-    async def revoke_all_for_user(
-        db: AsyncSession,
-        user_id: int
-    ) -> None:
-        await db.execute(
-            update(UserSession)
-            .where(
-                UserSession.user_id == user_id,
-                UserSession.is_revoked.is_(False)
-            )
             .values(
                 is_revoked=True,
                 revoked_at=now_dt()

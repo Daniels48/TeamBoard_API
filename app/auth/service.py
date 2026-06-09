@@ -1,5 +1,10 @@
+import json
 import logging
 from datetime import datetime, timezone, timedelta
+from secrets import randbelow
+
+from cryptography import fernet
+from cryptography.fernet import InvalidToken, Fernet
 
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
@@ -17,14 +22,18 @@ from app.core.redis_service import SessionCache
 
 logger = logging.getLogger("teamboard")
 
+
+def generate_confirmation_code():
+    return str(randbelow(900000) + 100000)
+
+def now_dt():
+    return datetime.now(timezone.utc)
+
+
 class AuthService:
-    def __init__ (
-        self,
-        password_service: PasswordService = PasswordService(),
-        token_service: TokenService = TokenService()
-    ):
-        self.password_service = password_service
-        self.token_service = token_service
+    def __init__ (self):
+        self.password_service = PasswordService()
+        self.token_service = TokenService()
 
     async def _create_session_and_tokens(self, db, user: User, request):
 
@@ -101,6 +110,9 @@ class AuthService:
                 user = await UserRepository.create(db, user)
                 tokens = await self._create_session_and_tokens(db, user, request)
 
+
+
+
         except IntegrityError as e:
             error = str(e.orig).lower()
 
@@ -125,7 +137,6 @@ class AuthService:
             )
 
         return tokens
-
 
     async def refresh(self, db: AsyncSession, refresh_token: str) -> str:
 
@@ -171,3 +182,125 @@ class AuthService:
         )
 
         return access_token
+
+    @staticmethod
+    async def generate_email_verification(db: AsyncSession,user: User) -> str:
+        code = generate_confirmation_code()
+        user.email_verification_token = code
+        user.email_verification_token_expires_at = now_dt() + timedelta(hours=24)
+
+        await db.commit()
+
+        return code
+
+    @staticmethod
+    async def verify_email(db: AsyncSession,user: User, code: str,) -> None:
+        if not user.email_verification_token_valid:
+            raise AppException(
+                "Verification code expired",
+                400,
+            )
+
+        if user.email_verification_token != code:
+            raise AppException(
+                "Invalid verification code",
+                400,
+            )
+
+        user.email_verified_at = now_dt()
+
+        user.email_verification_token = None
+        user.email_verification_token_expires_at = None
+
+        await db.commit()
+
+    @staticmethod
+    async def generate_password_reset(db: AsyncSession,user: User) -> str:
+        code = generate_confirmation_code()
+        user.password_reset_token = code
+        user.password_reset_token_expires_at = now_dt() + timedelta(minutes=15)
+
+        await db.commit()
+
+        return code
+
+
+    @staticmethod
+    async def verify_reset_code(db: AsyncSession,email: str,code: str) -> None:
+        user = await UserRepository.get_by_email(db=db, email=email,)
+
+        if not user:
+            raise AppException(
+                "Invalid code",
+                400,
+            )
+
+        if not user.password_reset_token_valid:
+            raise AppException(
+                "Code expired",
+                400,
+            )
+
+        if user.password_reset_token != code:
+            raise AppException(
+                "Invalid code",
+                400,
+            )
+
+    async def reset_password(
+            self,
+            db: AsyncSession,
+            token: str,
+            new_password: str,
+    ) -> None:
+        try:
+            payload = PasswordResetService().decrypt(token)
+        except InvalidToken:
+            raise AppException("Invalid reset token", 400)
+        email = payload["email"]
+        code = payload["code"]
+
+        user = await UserRepository.get_by_email(db=db,email=email,)
+
+        if not user:
+            raise AppException(
+                "Invalid reset token",
+                400,
+            )
+
+        if not user.password_reset_token_valid:
+            raise AppException(
+                "Reset code expired",
+                400,
+            )
+
+        if user.password_reset_token != code:
+            raise AppException(
+                "Invalid reset token",
+                400,
+            )
+
+        user.hashed_password = self.password_service.hash_password(new_password)
+
+        user.password_changed_at = now_dt()
+
+        user.password_reset_token = None
+        user.password_reset_token_expires_at = None
+
+        await UserSessionRepository.revoke_all_session(db=db, user_id=user.id)
+
+        await db.commit()
+
+
+class PasswordResetService:
+    def __init__(self) -> None:
+        self.fernet = fernet.Fernet(settings.security.password_reset_key)
+
+
+    def encrypt(self,data: dict,) -> str:
+        payload = json.dumps(data)
+        return self.fernet.encrypt(payload.encode()).decode()
+
+    def decrypt(self, token: str) -> dict:
+        payload = self.fernet.decrypt(token.encode()).decode()
+        return json.loads(payload)

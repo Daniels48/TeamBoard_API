@@ -165,6 +165,60 @@ async function logout(){
         "/static/index.html"
 }
 
+
+async function verifyEmail(){
+
+    const code =
+        document.getElementById(
+            "verification-code"
+        ).value.trim()
+
+    if(!code){
+        alert(
+            "Enter verification code"
+        )
+        return
+    }
+
+    const res =
+           await apiFetch(
+            "/api/auth/verify-email",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                "application/json"
+            },
+            body: JSON.stringify({
+                code
+            })
+        }
+    )
+
+    if(!res || !res.ok){
+
+        alert(
+            "Invalid code"
+        )
+
+        return
+    }
+
+    document.getElementById(
+        "verification-status"
+    ).textContent =
+        "Verified ✅"
+
+    document.getElementById(
+        "verification-block"
+    ).style.display =
+        "none"
+
+    alert(
+        "Email verified"
+    )
+}
+
 document.addEventListener(
     "DOMContentLoaded",
     initAuth

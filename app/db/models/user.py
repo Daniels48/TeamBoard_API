@@ -9,7 +9,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Boolean, DateTime, Enum as SqlEnum
 
 
-
 from app.db.base import Base
 
 from typing import TYPE_CHECKING
@@ -75,6 +74,28 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
+    email_verification_token: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        index=True
+    )
+
+    email_verification_token_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    password_reset_token: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        index=True
+    )
+
+    password_reset_token_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
     __table_args__ = (
         UniqueConstraint("email", name="uq_users_email"),
         UniqueConstraint("username", name="uq_users_username"),
@@ -83,3 +104,19 @@ class User(Base):
     @property
     def is_verified(self) -> bool:
         return self.email_verified_at is not None
+
+    @property
+    def email_verification_token_valid(self) -> bool:
+        return (
+                self.email_verification_token is not None
+                and self.email_verification_token_expires_at is not None
+                and self.email_verification_token_expires_at > now_dt()
+        )
+
+    @property
+    def password_reset_token_valid(self) -> bool:
+        return (
+                self.password_reset_token is not None
+                and self.password_reset_token_expires_at is not None
+                and self.password_reset_token_expires_at > now_dt()
+        )

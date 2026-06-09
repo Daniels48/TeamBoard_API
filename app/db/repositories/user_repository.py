@@ -51,3 +51,17 @@ class UserRepository:
         db.add(user)
         await db.flush()
         return user
+
+
+    @staticmethod
+    async def get_by_email_verification_token(
+            db: AsyncSession,
+            token: str,
+    ) -> User | None:
+        stmt = select(User).where(
+            User.email_verification_token == token
+        )
+
+        result = await db.execute(stmt)
+
+        return result.scalar_one_or_none()

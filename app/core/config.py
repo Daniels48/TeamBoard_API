@@ -11,6 +11,15 @@ class LoggingSettings(BaseModel):
     log_level: str = "INFO"
 
 
+class EmailSettings(BaseModel):
+    user: str
+    password: str
+    host: str
+    port: int
+    starttls: bool
+    ssl_tls: bool
+
+
 class DbSettings(BaseModel):
     name: str
     host: str
@@ -23,6 +32,7 @@ class SecuritySettings(BaseModel):
     jwt_secret: str
     refresh_secret: str
     email_secret: str
+    password_reset_key: str
     algorithm: str
     access_token_expire_min: int = 30
     refresh_token_expire_days: int = 7
@@ -40,6 +50,7 @@ class Settings(BaseSettings):
     db: DbSettings
     security: SecuritySettings
     logging: LoggingSettings
+    email: EmailSettings
 
     version: str = get_git_version()
 
