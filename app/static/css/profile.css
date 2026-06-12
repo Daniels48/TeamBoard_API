@@ -1,31 +1,72 @@
 body{
-    font-family:Arial;
-    background:#f4f6fa;
-    padding:40px;
+    font-family: Arial, sans-serif;
+    background: #f4f6fa;
+    margin: 0;
+    padding: 40px 20px;
 }
 
 .card{
-    background:white;
-    padding:30px;
-    border-radius:10px;
-    max-width:400px;
-    margin:auto;
-    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+    background: white;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
 }
 
 h2{
-    margin-top:0;
+    margin: 0 0 24px;
+    text-align: center;
+}
+
+p{
+    margin: 14px 0;
+    line-height: 1.5;
+}
+
+#verification-block{
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+input{
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+input:focus{
+    outline: none;
+    border-color: #3b82f6;
 }
 
 button{
-    margin-top:20px;
-    padding:10px;
-    background:#3b82f6;
-    color:white;
-    border:none;
-    cursor:pointer;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #3b82f6;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+button:hover{
+    opacity: .9;
 }
 
 .logout{
-    background:#ef4444;
+    background: #ef4444;
+}
+
+#verification-status{
+    font-weight: 600;
 }

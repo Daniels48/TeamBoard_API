@@ -29,14 +29,14 @@ def _build_auth_response(response: Response, tokens):
     return {"access_token": tokens["access_token"]}
 
 
-@auth_router.post(path="/register",response_model=AccessTokenResponse,status_code=status.HTTP_201_CREATED)
+@auth_router.post(path="/register", response_model=AccessTokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     data: UserRegister,
     response: Response,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    auth_service: AuthService = Depends(get_auth_service),
-):
+    auth_service: AuthService = Depends(get_auth_service)):
+
     tokens = await auth_service.register(db, data, request)
     return _build_auth_response(response, tokens)
 
@@ -47,8 +47,8 @@ async def login(
     response: Response,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    auth_service: AuthService = Depends(get_auth_service),
-):
+    auth_service: AuthService = Depends(get_auth_service)):
+
     tokens = await auth_service.login(db, data, request)
     return _build_auth_response(response, tokens)
 
@@ -57,8 +57,8 @@ async def login(
 async def refresh(
     request: Request,
     db: AsyncSession = Depends(get_db),
-    auth_service: AuthService = Depends(get_auth_service),
-):
+    auth_service: AuthService = Depends(get_auth_service)):
+
     refresh_token = request.cookies.get("refresh_token")
 
     if not refresh_token:
@@ -72,13 +72,11 @@ async def refresh(
 
     return {"access_token": access_token}
 
-
-@auth_router.delete("/sessions/{session_id}", status_code=204)
+@auth_router.delete("/sessions/{session_id}", status_code=200)
 async def logout_device(
     session_id: UUID,
     current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
+    db: AsyncSession = Depends(get_db)):
 
     session = await UserSessionRepository.get_by_session_id(db, session_id)
 
@@ -114,19 +112,17 @@ async def logout(
 
     return {"message": "Logged out"}
 
-
 @auth_router.post("/logout-all", status_code=204)
 async def logout_all(current_user=Depends(get_current_user),db: AsyncSession = Depends(get_db)):
     await UserSessionRepository.revoke_all_session(db, current_user.id)
     return {"message": "Logged out"}
 
-
 @auth_router.post("/send-verification-email")
 async def send_verification_email(
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
-):
+    user: User = Depends(get_current_user)):
+
     if user.is_verified:
         raise AppException("Email already verified",400)
 
@@ -136,19 +132,16 @@ async def send_verification_email(
 
     return {"message": "Verification email sent"}
 
-
 @auth_router.post("/verify-email")
 async def verify_email(data: VerifyEmailRequest,db: AsyncSession = Depends(get_db),user: User = Depends(get_current_user)):
     await AuthService.verify_email(db=db, user=user, code=data.code)
     return {"message": "Email verified successfully"}
 
-
 @auth_router.post("/forgot-password")
 async def forgot_password(
     data: ForgotPasswordRequest,
     background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db),
-):
+    db: AsyncSession = Depends(get_db)):
 
     user = await UserRepository.get_by_email(db=db, email=data.email)
 
@@ -161,8 +154,6 @@ async def forgot_password(
 
 
     return {"message":"If the account exists, a reset code has been sent"}
-
-
 
 @auth_router.post("/verify-reset-code")
 async def verify_reset_code(
@@ -194,18 +185,10 @@ async def verify_reset_code(
 
     return {"reset_token": reset_token}
 
-
 @auth_router.post("/reset-password")
 async def reset_password(
     data: ResetPasswordRequest,
-    db: AsyncSession = Depends(get_db),
-):
-    await AuthService().reset_password(
-        db=db,
-        token=data.token,
-        new_password=data.new_password,
-    )
+    db: AsyncSession = Depends(get_db)):
 
-    return {
-        "message": "Password reset successfully"
-    }
+    await AuthService().reset_password(db=db, token=data.token, new_password=data.new_password)
+    return {"message": "Password reset successfully"}

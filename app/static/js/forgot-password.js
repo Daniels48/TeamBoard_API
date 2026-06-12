@@ -11,82 +11,30 @@ async function sendResetCode(){
     btn.disabled = true
     btn.textContent = "Sending..."
 
-    const res =
-        await fetch(
-            "/api/auth/forgot-password",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                    "application/json"
-                },
-                body: JSON.stringify({
-                    email
-                })
-            }
-        )
+    const res = await window.api.post("/api/auth/forgot-password", {email})
 
     if(!res.ok){
-
         btn.disabled = false
         btn.textContent = "Send Code"
-
-        alert(
-            "Failed to send code"
-        )
-
+        alert("Failed to send code")
         return
     }
-
-    document
-        .getElementById(
-            "verify-block"
-        )
-        .classList
-        .remove(
-            "hidden"
-        )
-
-    btn.textContent =
-        "Code Sent ✓"
+    document.getElementById("verify-block").classList.remove("hidden")
+    btn.textContent ="Code Sent ✓"
 }
 
 
 
 async function verifyResetCode(){
-
-    const email =
-        document.getElementById(
-            "email"
-        ).value.trim()
-
-    const code =
-        document.getElementById(
-            "code"
-        ).value.trim()
+    const email =document.getElementById("email").value.trim()
+    const code =document.getElementById("code").value.trim()
 
     if(!code){
-        alert(
-            "Enter verification code"
-        )
+        alert("Enter verification code")
         return
     }
 
-    const res =
-        await fetch(
-            "/api/auth/verify-reset-code",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                    "application/json"
-                },
-                body: JSON.stringify({
-                    email,
-                    code
-                })
-            }
-        )
+    const res = await window.api.post("/api/auth/verify-reset-code", {email, code})
 
     if(!res.ok){
         alert("Invalid code")

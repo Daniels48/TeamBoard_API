@@ -31,7 +31,6 @@ class DbSettings(BaseModel):
 class SecuritySettings(BaseModel):
     jwt_secret: str
     refresh_secret: str
-    email_secret: str
     password_reset_key: str
     algorithm: str
     access_token_expire_min: int = 30

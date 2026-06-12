@@ -2,7 +2,8 @@ import time
 import logging
 from fastapi import Request
 from starlette.responses import Response
-from app.core.observability.context import set_context_after_request, set_http_context, clear_request_context
+from app.core.observability.context import set_context_after_request, set_http_context, clear_request_context, \
+    request_ctx, user_id_ctx
 
 logger = logging.getLogger("teamboard")
 
@@ -10,6 +11,8 @@ logger = logging.getLogger("teamboard")
 async def logging_middleware(request: Request, call_next):
     start_time = time.perf_counter()
     request_id = set_http_context(request)
+
+    request_ctx.set(request)
 
     response: Response | None = None
     error: Exception | None = None

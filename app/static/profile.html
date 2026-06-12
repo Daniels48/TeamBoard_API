@@ -7,51 +7,34 @@
 <style>
 </style>
 </head>
-<script src="/static/js/auth.js"></script>
-<script src="/static/js/profile.js"></script>
+
 <body>
 
-<div class="card">
+    <div class="card">
 
-<h2>Your Profile</h2>
+        <h2>Your Profile</h2>
 
-<p><b>Username:</b> <span id="username"></span></p>
-<p><b>Email:</b> <span id="email"></span></p>
+        <p><b>Username:</b> <span id="username"></span></p>
+        <p><b>Email:</b> <span id="email"></span></p>
 
+        <p>
+            <b>Status:</b>
+            <span id="verification-status">Not Verified ❌</span>
+        </p>
 
-    <p>
-    <b>Status:</b>
-    <span id="verification-status">
-        Not Verified ❌
-    </span>
-</p>
-
-<div id="verification-block">
-
-    <button id="verify-email-btn" onclick="sendVerificationEmail()">Send Verification Code </button>
-
-    <input
-        id="verification-code"
-        type="text"
-        placeholder="Enter code"
-        style="
-            margin-top:15px;
-            padding:10px;
-            width:100%;
-            box-sizing:border-box;
-        "
-    >
-
-    <button onclick="verifyEmail()">Verify</button>
-
-</div>
+        <div id="verification-block">
+            <button id="verify-email-btn" onclick="sendVerificationEmail()">Send Verification Code</button>
+            <input id="verification-code" type="text" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" placeholder="Enter 6-digit code"/>
+            <button onclick="verifyEmail()">Verify Email</button>
+        </div>
 
 
-<p><b>Role:</b> <span id="role"></span></p>
-<p><b>Created:</b> <span id="created"></span></p>
+        <p><b>Role:</b> <span id="role"></span></p>
+        <p><b>Created:</b> <span id="created"></span></p>
 
-</div>
+    </div>
 
-
+<script src="/static/js/api.js"></script>
+<script src="/static/js/profile.js"></script>
 </body>
 </html>

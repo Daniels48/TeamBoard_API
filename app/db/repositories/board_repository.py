@@ -2,8 +2,9 @@ from datetime import datetime, timezone
 from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models import Board
+from sqlalchemy.orm import selectinload, with_loader_criteria
 
+from app.db.models import Board, BoardColumn, Card
 
 
 def now_dt():
@@ -81,6 +82,39 @@ class BoardRepository:
             .where(
                 Board.id == board_id,
                 Board.deleted_at.is_(None)
+            )
+        )
+
+        result = await db.execute(stmt)
+
+        return result.scalar_one_or_none()
+
+    @staticmethod
+    async def get_full_by_public_id(
+            db: AsyncSession,
+            public_id: UUID,
+    ) -> Board | None:
+        stmt = (
+            select(Board)
+            .options(
+                selectinload(Board.columns)
+                .selectinload(BoardColumn.cards),
+
+                with_loader_criteria(
+                    BoardColumn,
+                    BoardColumn.deleted_at.is_(None),
+                    include_aliases=True,
+                ),
+
+                with_loader_criteria(
+                    Card,
+                    Card.deleted_at.is_(None),
+                    include_aliases=True,
+                ),
+            )
+            .where(
+                Board.public_id == public_id,
+                Board.deleted_at.is_(None),
             )
         )
 

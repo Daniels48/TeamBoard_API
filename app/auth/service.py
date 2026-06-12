@@ -4,9 +4,9 @@ from datetime import datetime, timezone, timedelta
 from secrets import randbelow
 
 from cryptography import fernet
-from cryptography.fernet import InvalidToken, Fernet
+from cryptography.fernet import InvalidToken
+from fastapi import Request
 
-from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,7 +35,12 @@ class AuthService:
         self.password_service = PasswordService()
         self.token_service = TokenService()
 
-    async def _create_session_and_tokens(self, db, user: User, request):
+    async def _create_session_and_tokens(
+            self,
+            db: AsyncSession,
+            user: User,
+            request: Request,
+    ) -> dict:
 
         refresh_token = self.token_service.generate_refresh_token()
         refresh_token_hash = self.token_service.hash_refresh_token(refresh_token)
@@ -80,18 +85,18 @@ class AuthService:
         }
 
     async def login(self, db, data, request):
-        async with db.begin():
-            user = await UserRepository.get_by_login(db, data.login)
+        user = await UserRepository.get_by_login(db, data.login)
 
-            if not user:
-                raise HTTPException(status_code=401, detail="Invalid credentials")
+        if not user:
+            raise AppException("Invalid credentials", 401)
 
-            if not self.password_service.verify_password(data.password, user.hashed_password):
-                raise HTTPException(status_code=401, detail="Invalid credentials")
+        if not self.password_service.verify_password(data.password, user.hashed_password):
+            raise AppException("Invalid credentials", 401)
 
-            tokens = await self._create_session_and_tokens(db, user, request)
+        tokens = await self._create_session_and_tokens(db, user, request)
 
-            return tokens
+        await db.commit()
+        return tokens
 
     async def register(self, db, data, request):
         try:
@@ -109,6 +114,7 @@ class AuthService:
 
                 user = await UserRepository.create(db, user)
                 tokens = await self._create_session_and_tokens(db, user, request)
+
 
 
 
@@ -149,21 +155,29 @@ class AuthService:
                 "Session not found in db",
                 extra={"event": "session_not_found"},
             )
-            raise AppException("Authorization", 401)
-
+            raise AppException(
+                "Unauthorized",
+                401,
+            )
         if session.expires_at < datetime.now(timezone.utc):
             logger.warning(
                 "Refresh token expired",
                 extra={"event": "refresh_token_expired"},
             )
-            raise AppException("Authorization", 401)
+            raise AppException(
+                "Unauthorized",
+                401,
+            )
 
         if session.revoked_at is not None:
             logger.warning(
                 "Session revoked",
                 extra={"event": "session_revoked"},
             )
-            raise AppException("Authorization", 401)
+            raise AppException(
+                "Unauthorized",
+                401,
+            )
 
 
         user = await UserRepository.get_by_id(db, session.user_id)
@@ -173,7 +187,10 @@ class AuthService:
                 "User not found",
                 extra={"event": "user_not_found"},
             )
-            raise AppException("Authorization", 401)
+            raise AppException(
+                "Unauthorized",
+                401,
+            )
 
         access_token = self.token_service.create_access_token(
             public_id=user.public_id,
@@ -195,6 +212,11 @@ class AuthService:
 
     @staticmethod
     async def verify_email(db: AsyncSession,user: User, code: str,) -> None:
+        if user.is_verified:
+            raise AppException(
+                "Email already verified",
+                400,
+            )
         if not user.email_verification_token_valid:
             raise AppException(
                 "Verification code expired",
@@ -223,7 +245,6 @@ class AuthService:
         await db.commit()
 
         return code
-
 
     @staticmethod
     async def verify_reset_code(db: AsyncSession,email: str,code: str) -> None:

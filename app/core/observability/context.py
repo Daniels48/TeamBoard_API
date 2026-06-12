@@ -19,6 +19,8 @@ client_port_ctx = ContextVar("client_port", default=None)
 protocol_ctx = ContextVar("protocol", default=None)
 query_params_ctx = ContextVar("query_params", default=None)
 
+request_ctx = ContextVar("request",default=None)
+
 
 def generate_request_id(incoming_id: str | None) -> str:
     return incoming_id or str(uuid.uuid4())
@@ -67,3 +69,4 @@ def clear_request_context():
 
     protocol_ctx.set(None)
     query_params_ctx.set(None)
+    request_ctx.set(None)

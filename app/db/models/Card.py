@@ -68,5 +68,6 @@ class Card(Base):
 
     column: Mapped["BoardColumn"] = relationship(
         "BoardColumn",
-        back_populates="cards"
+        back_populates="cards",
+
     )

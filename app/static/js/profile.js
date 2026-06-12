@@ -5,12 +5,7 @@ if(!token){
 }
 
 async function loadProfile(){
-
-    const res = await fetch("/api/users/me",{
-        headers:{
-            "Authorization":"Bearer "+token
-        }
-    })
+    const res = await window.api.get("/api/users/me")
 
     if(res.status===401){
         window.location.href="/static/login.html"
@@ -19,52 +14,27 @@ async function loadProfile(){
 
     const user = await res.json()
 
-    document.getElementById("username").innerText =
-        user.username
+    document.getElementById("username").innerText =user.username
+    document.getElementById("email").innerText =user.email
+    document.getElementById("role").innerText =user.role
+    const created = new Date(user.created_at)
+    document.getElementById("created").textContent = created.toLocaleString()
 
-    document.getElementById("email").innerText =
-        user.email
-
-    document.getElementById("role").innerText =
-        user.role
-
-    document.getElementById("created").innerText =
-        user.created_at
-
-    const status =
-        document.getElementById(
-            "verification-status"
-        )
-
-    const block =
-        document.getElementById(
-            "verification-block"
-        )
+    const status =document.getElementById("verification-status")
+    const block =document.getElementById("verification-block")
 
     if(user.is_verified){
-
-        status.textContent =
-            "Verified ✅"
-
-        block.style.display =
-            "none"
+        status.textContent ="Verified ✅"
+        block.style.display ="none"
     }
     else{
-
-        status.textContent =
-            "Not Verified ❌"
+        status.textContent ="Not Verified ❌"
     }
 }
 
 function logout(){
-
     localStorage.removeItem("access_token")
-
-    fetch("/api/auth/logout",{
-        method:"POST",
-        credentials:"include"
-    })
-
+    window.api.post("/api/auth/logout")
     window.location.href="/"
 }
 
@@ -74,83 +44,40 @@ function goBoards(){
 
 
 async function verifyEmail(){
-
-    const code =
-        document.getElementById(
-            "verification-code"
-        ).value.trim()
+    const code =document.getElementById("verification-code").value.trim()
 
     if(!code){
         alert("Enter verification code")
         return
     }
 
-    const res =
-        await apiFetch(
-            "/api/auth/verify-email",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                    "application/json"
-                },
-                body: JSON.stringify({
-                    code
-                })
-            }
-        )
+    const res = await window.api.post("/api/auth/verify-email", {code})
 
     if(!res || !res.ok){
         alert("Invalid code")
         return
     }
 
-    document.getElementById(
-        "verification-status"
-    ).textContent =
-        "Verified ✅"
-
-    document.getElementById(
-        "verification-block"
-    ).style.display =
-        "none"
-
+    document.getElementById("verification-status").textContent ="Verified ✅"
+    document.getElementById("verification-block").style.display ="none"
     alert("Email verified")
 }
 
 
 async function sendVerificationEmail(){
-
-    const btn =
-        document.getElementById(
-            "verify-email-btn"
-        )
-
+    const btn = document.getElementById("verify-email-btn")
     btn.disabled = true
     btn.textContent = "Sending..."
 
-    const res =
-        await apiFetch(
-            "/api/auth/send-verification-email",
-            {
-                method:"POST"
-            }
-        )
+    const res = await window.api.post("/api/auth/send-verification-email")
 
     if(!res || !res.ok){
-
         btn.disabled = false
         btn.textContent = "Verify Email"
-
-        alert(
-            "Failed to send email"
-        )
-
+        alert("Failed to send email")
         return
     }
-
-    btn.textContent =
-        "Email Sent ✓"
+    btn.textContent ="Email Sent ✓"
 }
 
 loadProfile()

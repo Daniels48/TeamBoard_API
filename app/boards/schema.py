@@ -3,6 +3,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, ConfigDict
 
+from app.boards_columns.schema import BoardColumnResponse
+from app.cards.schema import CardResponse
+
+
 class BoardCreate(BaseModel):
     title: str = Field(min_length=1,max_length=255)
     description: str | None = None
@@ -26,3 +30,11 @@ class BoardResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+
+class ColumnFullResponse(BoardColumnResponse):
+    cards: list[CardResponse]
+
+
+class BoardFullResponse(BoardResponse):
+    columns: list[ColumnFullResponse]

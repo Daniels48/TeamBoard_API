@@ -9,14 +9,7 @@ from app.db.models import UserSession
 def generate_refresh_token() -> str:
     return secrets.token_urlsafe(64)
 
-
-
 def get_client_ip(request: Request) -> str | None:
-    """
-    Получает реальный IP с учётом proxy.
-    """
-
-    # Если есть reverse proxy (nginx, cloudflare)
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
         return forwarded.split(",")[0].strip()
@@ -28,10 +21,6 @@ def get_client_ip(request: Request) -> str | None:
 
 
 def parse_user_agent(request: Request) -> dict:
-    """
-    Возвращает информацию об устройстве.
-    """
-
     ua_string = request.headers.get("user-agent", "")
     ua = parse(ua_string)
 
@@ -53,7 +42,7 @@ def parse_user_agent(request: Request) -> dict:
     }
 
 
-def create_session_data(session_db: UserSession):
+def create_session_data(session_db: UserSession) -> SessionCacheData:
     return SessionCacheData(
         username=session_db.user.username,
         public_id=str(session_db.user.public_id),

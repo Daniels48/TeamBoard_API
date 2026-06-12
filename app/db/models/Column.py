@@ -71,5 +71,6 @@ class BoardColumn(Base):
     cards: Mapped[list["Card"]] = relationship(
         "Card",
         back_populates="column",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        order_by="Card.position"
     )

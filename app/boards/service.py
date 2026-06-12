@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
-from app.boards.schema import BoardCreate
+from app.boards.schema import BoardCreate, BoardFullResponse
 from app.cards.schema import BoardLayoutUpdate
 from app.core.Exceptions.exceptions import AppException
 from app.db.models import User, Board, BoardColumn
@@ -98,6 +98,37 @@ class BoardService:
             )
 
         return board
+
+    @staticmethod
+    async def get_full_board(
+            db: AsyncSession,
+            public_id: UUID,
+            user: User,
+    )-> BoardFullResponse:
+
+        board = await BoardRepository.get_full_by_public_id(
+            db=db,
+            public_id=public_id,
+        )
+
+        if not board:
+            raise AppException(
+                "Board not found",
+                404,
+            )
+
+        if (
+            user.role != UserRole.ADMIN
+            and board.owner_id != user.id
+            and not board.is_public
+        ):
+
+            raise AppException(
+                "Forbidden",
+                403,
+            )
+
+        return BoardFullResponse.model_validate(board)
 
     @staticmethod
     async def update_layout(

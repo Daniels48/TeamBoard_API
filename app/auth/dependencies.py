@@ -1,18 +1,20 @@
 import logging
 from datetime import datetime, timezone
 
-from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.security import TokenService
 from app.auth.service import AuthService
 from app.auth.sсhemas import AccessTokenPayload
 from app.auth.utils import create_session_data
+
 from app.core.Exceptions.exceptions import AppException, ErrorCode
 from app.core.config import settings
-from app.core.observability.context import user_id_ctx
+from app.core.observability.context import user_id_ctx, request_ctx
 from app.core.redis_service import SessionCache
+
 from app.db.database import get_db
 from app.db.repositories.session_repository import UserSessionRepository
 from app.db.repositories.user_repository import UserRepository
@@ -22,17 +24,15 @@ logger = logging.getLogger("teamboard")
 
 security = HTTPBearer()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
-
 
 def get_auth_service():
     return AuthService()
 
 
-async def get_token_payload(credentials: HTTPAuthorizationCredentials = Depends(security)):
+async def get_token_payload(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
     payload = TokenService().decode_access_token(token)
-    user_id_ctx.set(payload.sub_str)
+    request.state.user_id = payload.sub_str
     return payload
 
 
@@ -73,8 +73,7 @@ async def verify_session(
 
 async def get_current_user(
     payload: AccessTokenPayload = Depends(verify_session),
-    db: AsyncSession = Depends(get_db),
-):
+    db: AsyncSession = Depends(get_db)):
 
     public_id = payload.sub_str
 

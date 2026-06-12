@@ -1,8 +1,8 @@
 body{
-    margin: 0;
-    padding: 40px;
-    background: #f4f6fa;
     font-family: Arial, sans-serif;
+    background: #f4f6fa;
+    margin: 0;
+    padding: 30px;
 }
 
 .container{
@@ -11,26 +11,117 @@ body{
 }
 
 .board-header{
-    margin-bottom: 30px;
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,.08);
 }
 
 .board-header h1{
-    margin: 0;
-    font-size: 32px;
+    margin: 0 0 10px;
 }
 
 .board-header p{
+    margin: 0;
     color: #6b7280;
+}
+
+#save-board-btn{
+    margin-top: 20px;
 }
 
 .create-column{
     display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
+    gap: 12px;
+
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,.08);
 }
 
 .create-column input{
     flex: 1;
+}
+
+.columns{
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    overflow-x: auto;
+    padding-bottom: 20px;
+}
+
+.column{
+    min-width: 320px;
+    max-width: 320px;
+
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,.08);
+}
+
+.column h3{
+    margin: 0 0 16px;
+}
+
+.cards{
+    min-height: 120px;
+}
+
+.card{
+    background: #f9fafb;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+
+    padding: 14px;
+    margin-bottom: 12px;
+
+    cursor: grab;
+}
+
+.card:last-child{
+    margin-bottom: 0;
+}
+
+.card-title{
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.card-description{
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 12px;
+    word-break: break-word;
+}
+
+.card-actions{
+    display: flex;
+    gap: 8px;
+}
+
+.empty-card{
+    text-align: center;
+    color: #9ca3af;
+    padding: 20px;
+    border: 2px dashed #d1d5db;
+    border-radius: 10px;
+}
+
+input{
+    width: 100%;
+    box-sizing: border-box;
 
     padding: 12px;
 
@@ -40,8 +131,8 @@ body{
     font-size: 14px;
 }
 
-.create-column button{
-    padding: 12px 18px;
+button{
+    padding: 10px 16px;
 
     border: none;
     border-radius: 8px;
@@ -53,59 +144,30 @@ body{
     font-weight: 600;
 }
 
-.create-column button:hover{
-    background: #2563eb;
+button:hover{
+    opacity: .9;
 }
 
-.columns{
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-
-    overflow-x: auto;
+#save-board-btn{
+    background: #10b981;
 }
 
-.column{
-    min-width: 300px;
-    max-width: 300px;
+.column button{
+    margin-top: 16px;
+    width: 100%;
 
-    background: white;
-
-    border-radius: 12px;
-
-    padding: 15px;
-
-    cursor: pointer;
-
-    box-shadow:
-        0 2px 8px rgba(0,0,0,0.08);
+    background: #3b82f6;
+    color: #374151;
+}
+.column button.delete{
+    background: #ef4444;
+    color: white;
 }
 
-.column h3{
-    margin-top: 0;
-    margin-bottom: 15px;
-
+.column button.delete:hover{
+    background: #dc2626;
 }
 
-.cards{
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.card{
-    background:white;
-    border-radius:8px;
-    padding:10px;
-    margin-top:10px;
-    box-shadow:0 1px 4px rgba(0,0,0,.1);
-}
-
-.card-title{
-    font-weight: 600;
-}
-
-.empty-column{
-    color: #9ca3af;
-    font-size: 14px;
+.column button:hover{
+    background: #d1d5db;
 }
