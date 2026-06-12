@@ -1,32 +1,51 @@
 # TeamBoard
 
-Kanban board application built with FastAPI.
+TeamBoard — это веб-приложение для управления задачами и командной работы в стиле Kanban.
 
-## Features
+Система позволяет создавать доски, организовывать задачи по колонкам и отслеживать прогресс выполнения. Пользователи могут управлять своими проектами через удобный интерфейс с поддержкой перетаскивания карточек между колонками.
 
-- JWT Authentication
-- Redis Sessions
-- User Roles (Admin/User)
-- Boards
-- Columns
-- Cards
-- Drag & Drop
-- Board Layout Saving
-- PostgreSQL
-- Alembic Migrations
-- Docker Compose
+## Основные возможности
 
-## Tech Stack
+* Регистрация и аутентификация пользователей
+* JWT-аутентификация с Access и Refresh токенами
+* Управление пользовательскими сессиями
+* Подтверждение электронной почты
+* Восстановление пароля через email
+* Создание и управление досками
+* Создание колонок и карточек задач
+* Перемещение карточек между колонками (Drag & Drop)
+* Хранение активных сессий в Redis
+* Структурированное логирование запросов и действий пользователей
 
-- Python 3.12
-- FastAPI
-- PostgreSQL
-- SQLAlchemy
-- Redis
-- Alembic
-- Docker
+## Технологический стек
 
-## Run
+### Backend
 
-```bash
-docker compose up --build
+* FastAPI
+* SQLAlchemy 2.0
+* PostgreSQL
+* Redis
+* Alembic
+
+### Безопасность
+
+* JWT (Access Token)
+* Refresh Token в HttpOnly Cookie
+* Хранение пользовательских сессий
+* Ролевая модель доступа
+
+### Инфраструктура
+
+* Docker
+* Docker Compose
+
+### Наблюдаемость
+
+* Structured JSON Logging
+* Request ID
+* User ID Tracking
+* Метрики времени выполнения запросов
+
+## Назначение проекта
+
+Проект разработан в качестве pet-проекта для изучения современных подходов к разработке backend-приложений на FastAPI, включая аутентификацию, управление сессиями, работу с Redis, отправку email-сообщений и организацию многослойной архитектуры приложения.
