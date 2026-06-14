@@ -7,73 +7,85 @@ const URL_FULL_BOARD = `/api/boards/${boardId}/full`
 
 
 async function loadBoard(){
+
     if(!boardId){return}
     const res = await window.api.get(URL_FULL_BOARD)
     if(!res || !res.ok){return}
     const board = await res.json()
+    const role = board.board_role;
+
     document.getElementById("board-title").textContent = board.title
     document.getElementById("board-description").textContent =board.description || ""
-    renderColumns(board.columns)
+    renderBoards(board.columns, role)
 }
 
+function renderBoards(columns, role) {
+    function renderColumns(columns){
+        const container = document.getElementById("columns")
+        container.innerHTML = ""
+        columns.forEach(column => {
+            const div = document.createElement("div")
+            div.className = "column"
 
-function renderColumns(columns){
-    const container = document.getElementById("columns")
-    container.innerHTML = ""
-    columns.forEach(column => {
-        const div = document.createElement("div")
-        div.className = "column"
+            div.innerHTML = `
+                <h3>${column.title}</h3>
+                <div class="cards" id="cards-${column.public_id}" data-column-id="${column.public_id}"></div>
+                <button class="not-viewer" onclick="createCard('${column.public_id}')">Add Card</button>
+            `
 
-        div.innerHTML = `
-            <h3>${column.title}</h3>
-            <div class="cards" id="cards-${column.public_id}" data-column-id="${column.public_id}"></div>
-            <button onclick="createCard('${column.public_id}')">Add Card</button>
-        `
+            container.appendChild(div)
+            const cardsContainer = div.querySelector(".cards")
+            cardsContainer.addEventListener("dragover", e => e.preventDefault())
 
-        container.appendChild(div)
-        const cardsContainer = div.querySelector(".cards")
-        cardsContainer.addEventListener("dragover", e => e.preventDefault())
+            cardsContainer.addEventListener("drop",
+                e => {
+                    e.preventDefault()
+                    if(!draggedCard){return}
+                    cardsContainer.appendChild(draggedCard)
+                    draggedCard = null
+                    pendingChanges = true
+                }
+            )
 
-        cardsContainer.addEventListener("drop",
-            e => {
-                e.preventDefault()
-                if(!draggedCard){return}
-                cardsContainer.appendChild(draggedCard)
-                draggedCard = null
-                pendingChanges = true
-            }
-        )
-
-        renderCards(cardsContainer, column.cards, column.public_id)
-    })
-}
-
-
-function renderCards(container,cards,columnId){
-    if(cards.length === 0){
-        container.innerHTML = '<div class="empty-card">No cards</div>'
-        return
+            renderCards(cardsContainer, column.cards, column.public_id)
+        })
     }
-    cards.forEach(card => {
-        const div =document.createElement("div")
-        div.className = "card"
-        div.draggable = true
-        div.dataset.cardId = card.public_id
-        div.addEventListener("dragstart", () => {draggedCard = div})
-        div.innerHTML = `
-            <div class="card-title">${card.title}</div>
-            <div class="card-description">${card.description || ""}</div>
-            <div class="card-actions">
-                <button onclick="editCard('${card.public_id}','${columnId}')">Edit</button>
-                <button class="delete" onclick="deleteCard('${card.public_id}','${columnId}')">Delete</button>
-            </div>
-        `
-        container.appendChild(div)
-    })
+    function renderCards(container,cards,columnId){
+        if(cards.length === 0){
+            container.innerHTML = '<div class="empty-card">No cards</div>'
+            return
+        }
+        cards.forEach(card => {
+            const div =document.createElement("div")
+            div.className = "card"
+            div.draggable = true
+            div.dataset.cardId = card.public_id
+            div.addEventListener("dragstart", () => {draggedCard = div})
+            div.innerHTML = `
+                <div class="card-title">${card.title}</div>
+                <div class="card-description">${card.description || ""}</div>
+                <div class="card-actions not-viewer">
+                    <button  onclick="editCard('${card.public_id}','${columnId}')">Edit</button>
+                    <button class="delete" onclick="deleteCard('${card.public_id}','${columnId}')">Delete</button>
+                </div>
+            `
+            container.appendChild(div)
+        })
+    }
+    renderColumns(columns)
+
+    if(!canManageMembers(role)){
+        document.getElementById("members-btn").style.display = "none"
+    }
+    if(isViewer(role)) {
+        hideClassNameElements("not-viewer");
+    }
+
+    if(isEditor(role)) {
+        hideClassNameElements("not-creator");
+    }
 }
 
-
-////////////////////////////////////////
 async function saveBoard(){
     if(!pendingChanges){return}
     const cards = collectBoardState()
@@ -154,4 +166,123 @@ async function deleteCard(cardId,columnId){
 }
 
 
+async function addMember(){
+    const username =document.getElementById("member-username").value.trim()
+    const role =document.getElementById("member-role").value
+
+    if(!username){
+        alert("Enter username")
+        return
+    }
+
+    const res = await window.api.post(`/api/members/${boardId}`,{username,role})
+
+    if(!res || !res.ok){
+        alert("Failed to add member")
+        return
+    }
+
+    document.getElementById("member-username").value = ""
+    await loadMembers()
+}
+
+async function loadUsers(){
+    const q = document.getElementById("member-username").value.trim()
+    if(q.length < 2){return}
+
+    const res = await window.api.get(`/api/users/search?q=${encodeURIComponent(q)}`)
+
+    if(!res || !res.ok){return}
+
+    const users = await res.json()
+
+    const datalist = document.getElementById("users-list")
+    datalist.innerHTML = ""
+
+    users.forEach(user => {
+        const option = document.createElement("option")
+        option.value = user.username
+        datalist.appendChild(option)
+    })
+}
+
+async function loadMembers(){
+    const res = await window.api.get(`/api/members/${boardId}/`)
+    if(!res || !res.ok){
+        alert("Failed to load members")
+        return
+    }
+    const data = await res.json()
+    renderMembers(data)
+}
+
+//-------------------------------------------------------------
+function renderMembers(data){
+    const editorsContainer = document.getElementById("editors-list")
+    const viewersContainer = document.getElementById("viewers-list")
+
+    editorsContainer.innerHTML = ""
+    viewersContainer.innerHTML = ""
+
+    document.getElementById("owner-name").textContent = data.owner.username
+
+    data.members.forEach(member => {
+        const div = document.createElement("div")
+        div.className = "member-item"
+        div.innerHTML = `
+            <span>${member.username}</span>
+            <div class="member-actions">
+                <button class="icon-btn" onclick="changeRole('${member.username}','${member.role}')">🔄</button>
+                <button class="icon-btn delete" onclick="removeMember('${member.username}')">❌</button>
+            </div>
+        `
+        if(member.role === "editor"){
+            editorsContainer.appendChild(div)
+        }else{
+            viewersContainer.appendChild(div)
+        }
+    })
+}
+
+async function removeMember(userId){
+    const confirmed = confirm("Remove member?")
+    if(!confirmed){return}
+    const res = await window.api.del(`/api/members/${boardId}/${userId}`)
+    if(!res || !res.ok){
+        alert("Failed")
+        return
+    }
+    await loadMembers()
+}
+
+async function changeRole(username, currentRole){
+    const role = currentRole === "editor"? "viewer" : "editor"
+    const res = await window.api.patch(`/api/members/${boardId}/${username}`,{ role })
+
+    if(!res || !res.ok){
+        alert("Failed")
+        return
+    }
+
+    await loadMembers()
+}
+//-------------------------------------------------------------
+
+function openMembersDialog(){loadMembers();document.getElementById("members-dialog").showModal()}
+function closeMembersDialog(){document.getElementById("members-dialog").close()}
+function isAdmin(role){return role === "admin"}
+function isOwner(role){return role === "owner"}
+function isEditor(role){return role === "editor"}
+function isViewer(role){ return role === "viewer"}
+function canManageMembers(role){return isAdmin(role) || isOwner(role)}
+function canEditBoard(role){return isAdmin(role) || isOwner(role) || isEditor(role)}
+function hideClassNameElements(className){
+    document
+        .querySelectorAll(`.${className}`)
+        .forEach(element => {
+            element.style.display = "none"
+        })
+}
+
 document.addEventListener("DOMContentLoaded",loadBoard)
+document.getElementById("member-username").addEventListener("input", loadUsers)

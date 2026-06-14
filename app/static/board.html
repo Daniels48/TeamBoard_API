@@ -13,10 +13,56 @@
     <div class="board-header">
         <h1 id="board-title"></h1>
         <p id="board-description"></p>
-        <button  id="save-board-btn" onclick="saveBoard()">Save Changes</button>
     </div>
 
-    <div class="create-column">
+    <div class="board-actions">
+        <button class="not-creator" onclick="openMembersDialog()" id="members-btn">
+            👥 Members
+        </button>
+
+        <button class="not-viewer"  id="save-board-btn" onclick="saveBoard()">
+            Save Changes
+        </button>
+    </div>
+
+
+    <dialog id="members-dialog">
+        <div class="members-dialog-header">
+            <h2>Members</h2>
+            <button onclick="closeMembersDialog()">✕</button>
+        </div>
+        <div id="members-content">
+            <div class="owner-line">
+                <strong>Owner:</strong>
+                <span id="owner-name"></span>
+            </div>
+
+            <div class="members-grid">
+                <div class="member-column">
+                    <div class="column-title editors-title">Editors</div>
+                    <div id="editors-list"></div>
+                </div>
+
+                <div class="member-column">
+                    <div class="column-title viewers-title">Viewers</div>
+                    <div id="viewers-list"></div>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <h3>Add Member</h3>
+        <input id="member-username" list="users-list" placeholder="Start typing username...">
+        <datalist id="users-list"></datalist>
+        <select id="member-role">
+            <option value="viewer">Viewer</option>
+            <option value="editor">Editor</option>
+        </select>
+
+        <button onclick="addMember()">Add Member</button>
+
+    </dialog>
+
+    <div class="create-column not-viewer not-creator">
         <input id="column-title" placeholder="Column title">
         <button onclick="createColumn()">Create Column</button>
     </div>

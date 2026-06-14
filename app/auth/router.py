@@ -68,9 +68,7 @@ async def refresh(
         )
         raise AppException("Unauthorized", 401)
 
-    access_token = await auth_service.refresh(db, refresh_token)
-
-    return {"access_token": access_token}
+    return await auth_service.refresh(db, refresh_token)
 
 @auth_router.delete("/sessions/{session_id}", status_code=200)
 async def logout_device(
@@ -81,7 +79,7 @@ async def logout_device(
     session = await UserSessionRepository.get_by_session_id(db, session_id)
 
     if not session or session.user_id != current_user.id:
-        raise HTTPException(404, "Session not found")
+        raise AppException(status_code=404, message="Session not found")
 
     session.revoked_at = datetime.now(timezone.utc)
 
@@ -134,8 +132,7 @@ async def send_verification_email(
 
 @auth_router.post("/verify-email")
 async def verify_email(data: VerifyEmailRequest,db: AsyncSession = Depends(get_db),user: User = Depends(get_current_user)):
-    await AuthService.verify_email(db=db, user=user, code=data.code)
-    return {"message": "Email verified successfully"}
+    return await AuthService.verify_email(db=db, user=user, code=data.code)
 
 @auth_router.post("/forgot-password")
 async def forgot_password(

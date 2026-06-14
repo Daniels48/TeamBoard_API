@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from enum import Enum
 from uuid6 import uuid7
 from uuid import UUID as PyUUID
 
@@ -82,3 +81,10 @@ class Board(Base):
         cascade="all, delete-orphan",
         order_by="BoardColumn.position"
     )
+
+    members: Mapped[list["BoardMember"]] = relationship(
+        "BoardMember",
+        back_populates="board",
+        cascade="all, delete-orphan",
+    )
+

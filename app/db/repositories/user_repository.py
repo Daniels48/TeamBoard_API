@@ -54,10 +54,7 @@ class UserRepository:
 
 
     @staticmethod
-    async def get_by_email_verification_token(
-            db: AsyncSession,
-            token: str,
-    ) -> User | None:
+    async def get_by_email_verification_token(db: AsyncSession,token: str) -> User | None:
         stmt = select(User).where(
             User.email_verification_token == token
         )
@@ -65,3 +62,19 @@ class UserRepository:
         result = await db.execute(stmt)
 
         return result.scalar_one_or_none()
+
+    @staticmethod
+    async def search_by_username(db: AsyncSession, query: str, current_user: User) -> list[User]:
+        stmt = (
+            select(User)
+            .where(
+                User.username.ilike(f"%{query}%"),
+                User.id != current_user.id,
+                User.deleted_at.is_(None),
+            )
+            .limit(10)
+        )
+
+        result = await db.execute(stmt)
+
+        return list(result.scalars().all())

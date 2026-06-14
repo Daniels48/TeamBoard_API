@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, ConfigDict
 
-from app.boards_columns.schema import BoardColumnResponse
+from app.columns.schema import BoardColumnResponse
 from app.cards.schema import CardResponse
 
 
@@ -37,4 +37,5 @@ class ColumnFullResponse(BoardColumnResponse):
 
 
 class BoardFullResponse(BoardResponse):
+    board_role: str | None = None
     columns: list[ColumnFullResponse]

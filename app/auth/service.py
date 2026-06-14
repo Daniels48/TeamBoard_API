@@ -144,7 +144,7 @@ class AuthService:
 
         return tokens
 
-    async def refresh(self, db: AsyncSession, refresh_token: str) -> str:
+    async def refresh(self, db: AsyncSession, refresh_token: str) -> dict[str, str]:
 
         refresh_hash = self.token_service.hash_refresh_token(refresh_token)
 
@@ -198,7 +198,7 @@ class AuthService:
             role=user.role.value,
         )
 
-        return access_token
+        return {"access_token": access_token}
 
     @staticmethod
     async def generate_email_verification(db: AsyncSession,user: User) -> str:
@@ -211,7 +211,7 @@ class AuthService:
         return code
 
     @staticmethod
-    async def verify_email(db: AsyncSession,user: User, code: str,) -> None:
+    async def verify_email(db: AsyncSession,user: User, code: str,) -> dict[str, str]:
         if user.is_verified:
             raise AppException(
                 "Email already verified",
@@ -235,6 +235,8 @@ class AuthService:
         user.email_verification_token_expires_at = None
 
         await db.commit()
+
+        return {"message": "Email verified successfully"}
 
     @staticmethod
     async def generate_password_reset(db: AsyncSession,user: User) -> str:

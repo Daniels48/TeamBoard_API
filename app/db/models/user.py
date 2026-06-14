@@ -96,6 +96,12 @@ class User(Base):
         nullable=True,
     )
 
+    board_members: Mapped[list["BoardMember"]] = relationship(
+        "BoardMember",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
     __table_args__ = (
         UniqueConstraint("email", name="uq_users_email"),
         UniqueConstraint("username", name="uq_users_username"),

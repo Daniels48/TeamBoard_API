@@ -5,6 +5,9 @@ from uuid import UUID as PyUUID
 from app.db.models.user import UserRole
 
 
+class UserSearchResponse(BaseModel):
+    username: str
+    
 
 class UserUpdate(BaseModel):
     first_name: Optional[str] = None
