@@ -10,20 +10,17 @@ from app.cards.schema import CardResponse
 class BoardCreate(BaseModel):
     title: str = Field(min_length=1,max_length=255)
     description: str | None = None
-    is_public: bool = False
 
 
 class BoardUpdate(BaseModel):
     title: str | None = Field( default=None, max_length=255)
     description: str | None = None
-    is_public: bool | None = None
 
 
 class BoardResponse(BaseModel):
     public_id: UUID
     title: str
     description: str | None
-    is_public: bool
     created_at: datetime
     updated_at: datetime
 
@@ -38,4 +35,5 @@ class ColumnFullResponse(BoardColumnResponse):
 
 class BoardFullResponse(BoardResponse):
     board_role: str | None = None
+    owner_username: str | None = None
     columns: list[ColumnFullResponse]

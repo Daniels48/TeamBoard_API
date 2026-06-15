@@ -64,11 +64,6 @@ class Board(Base):
         nullable=True
     )
 
-    is_public: Mapped[bool] = mapped_column(
-        Boolean,
-        default=False,
-        nullable=False
-    )
 
     owner: Mapped["User"] = relationship(
         "User",

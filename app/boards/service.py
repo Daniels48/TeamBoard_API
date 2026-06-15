@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
-from app.boards.schema import BoardCreate, BoardFullResponse
+from app.boards.schema import BoardCreate, BoardFullResponse, BoardResponse
 from app.cards.schema import BoardLayoutUpdate
 from app.core.Exceptions.exceptions import AppException
 from app.db.models import User, Board, BoardColumn
@@ -35,11 +35,20 @@ class BoardService:
         return board
 
     @staticmethod
-    async def get_my_boards(db: AsyncSession, user: User) -> list[Board]:
+    async def get_available_boards(db: AsyncSession, user: User) -> list[Board]:
+
+        if user.role == UserRole.ADMIN:
+            boards = await BoardRepository.get_all(db)
+
+        else:
+            boards = await BoardRepository.get_users_boards(db=db, user_id=user.id)
+
+        return await BoardRepository.get_users_boards(db=db,user_id=user.id)
+
         if user.role == UserRole.ADMIN:
             return await BoardRepository.get_all(db=db)
 
-        return await BoardRepository.get_users_boards(db=db,user_id=user.id)
+
 
     @staticmethod
     async def get_board(db: AsyncSession, public_id: UUID,user: User) -> Board:
@@ -64,6 +73,7 @@ class BoardService:
 
         response = BoardFullResponse.model_validate(board)
         response.board_role = BoardRBAC.get_role(board=board, user=user)
+        response.owner_username = board.owner.username
         return response
 
     @staticmethod
@@ -85,3 +95,5 @@ class BoardService:
             card.position = item.position
 
         await db.commit()
+
+        return {"message": "success"}

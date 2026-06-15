@@ -4,7 +4,7 @@ let pendingChanges = false
 const params = new URLSearchParams(window.location.search)
 boardId = params.get("id")
 const URL_FULL_BOARD = `/api/boards/${boardId}/full`
-
+let hasUnsavedChanges = false;
 
 async function loadBoard(){
 
@@ -12,14 +12,14 @@ async function loadBoard(){
     const res = await window.api.get(URL_FULL_BOARD)
     if(!res || !res.ok){return}
     const board = await res.json()
-    const role = board.board_role;
-
-    document.getElementById("board-title").textContent = board.title
-    document.getElementById("board-description").textContent =board.description || ""
-    renderBoards(board.columns, role)
+    renderBoards(board)
 }
 
-function renderBoards(columns, role) {
+function renderBoards(board) {
+    const columns = board.columns;
+    const role = board.board_role;
+    const time_created_base = board.created_at;
+
     function renderColumns(columns){
         const container = document.getElementById("columns")
         container.innerHTML = ""
@@ -28,7 +28,16 @@ function renderBoards(columns, role) {
             div.className = "column"
 
             div.innerHTML = `
-                <h3>${column.title}</h3>
+                  <div class="container-column">
+                      <h3>${column.title} (${column.cards.length})</h3>
+                      <div class="column-menu not-viewer">
+                        <button class="menu-btn"onclick="toggleColumnMenu(this)">⋮</button>
+                        <div class="column-dropdown">
+                            <button class="black" onclick="editColumn('${column.public_id}')">✏️ Edit</button>
+                            <button class="danger" onclick="deleteColumn('${column.public_id}')">🗑️ Delete</button>
+                        </div>
+                      </div>
+                  </div>
                 <div class="cards" id="cards-${column.public_id}" data-column-id="${column.public_id}"></div>
                 <button class="not-viewer" onclick="createCard('${column.public_id}')">Add Card</button>
             `
@@ -41,9 +50,19 @@ function renderBoards(columns, role) {
                 e => {
                     e.preventDefault()
                     if(!draggedCard){return}
+                    const oldContainer = draggedCard.parentElement;
+                    const empty = cardsContainer.querySelector(".empty-card");
+                    if (empty) {
+                        empty.remove();
+                    }
                     cardsContainer.appendChild(draggedCard)
+
+                    updateEmptyState(oldContainer);
+                    updateEmptyState(cardsContainer);
+
                     draggedCard = null
                     pendingChanges = true
+                    markUnsaved();
                 }
             )
 
@@ -61,18 +80,44 @@ function renderBoards(columns, role) {
             div.draggable = true
             div.dataset.cardId = card.public_id
             div.addEventListener("dragstart", () => {draggedCard = div})
+
             div.innerHTML = `
-                <div class="card-title">${card.title}</div>
-                <div class="card-description">${card.description || ""}</div>
-                <div class="card-actions not-viewer">
-                    <button  onclick="editCard('${card.public_id}','${columnId}')">Edit</button>
-                    <button class="delete" onclick="deleteCard('${card.public_id}','${columnId}')">Delete</button>
+                <div class="card-header">
+                    <div class="card-title">${card.title}</div>
+                    <div class="card-menu">
+                        <button class="menu-btn not-viewer"onclick="toggleCardMenu(this)">⋮</button>
+                        <div class="card-dropdown">
+                            <button class="edit" onclick="editCard('${card.public_id}','${columnId}')">✏️ Edit</button>
+                            <button class="danger" onclick="deleteCard('${card.public_id}','${columnId}')">🗑️ Delete</button>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="card-description">${card.description || ""}</div>
+                <div class="card-update">🕒 ${formatUpdated(card.updated_at)}</div>
+
             `
+
             container.appendChild(div)
         })
     }
+
     renderColumns(columns)
+
+    document.getElementById("board-title").textContent = board.title
+    document.getElementById("board-description").textContent =board.description || ""
+
+    document.getElementById("member-username").addEventListener("input", loadUsers)
+
+    const badge = document.getElementById("board-role-badge")
+    badge.textContent = role;
+    badge.className = `board-role ${role}`
+
+    const time_board_created = document.querySelector(".icon-data-created");
+    time_board_created.innerHTML = formatUpdated(time_created_base, true, board.owner_username);
+
+    const header_col = document.querySelector(".h2-col");
+    header_col.textContent = `Columns (${columns.length})`
 
     if(!canManageMembers(role)){
         document.getElementById("members-btn").style.display = "none"
@@ -86,6 +131,71 @@ function renderBoards(columns, role) {
     }
 }
 
+function toggleCardMenu(button){
+    document.querySelectorAll(".card-dropdown.show")
+        .forEach(menu => {
+            if(menu !== button.nextElementSibling){
+                menu.classList.remove("show")
+            }
+        })
+
+    button.nextElementSibling.classList.toggle("show")
+}
+
+function toggleColumnMenu(button){
+    document.querySelectorAll(".column-dropdown.show")
+        .forEach(menu => {
+            if(menu !== button.nextElementSibling){
+                menu.classList.remove("show");
+            }
+        });
+
+    button.nextElementSibling.classList.toggle("show");
+}
+
+function toggleCardMenu(button){
+    document.querySelectorAll(".card-dropdown.show")
+        .forEach(menu => {
+            if(menu !== button.nextElementSibling){
+                menu.classList.remove("show")
+            }
+        })
+
+    button.nextElementSibling.classList.toggle("show")
+}
+
+//-------------------------------------------------------------
+function markUnsaved() {
+    document
+        .getElementById("unsaved-indicator")
+        ?.classList.remove("hidden");
+
+    document
+        .getElementById("save-positions-btn")
+        ?.classList.remove("hidden");
+}
+
+function clearUnsaved() {
+    pendingChanges = false;
+
+    document
+        .getElementById("unsaved-indicator")
+        ?.classList.add("hidden");
+
+    document
+        .getElementById("save-positions-btn")
+        ?.classList.add("hidden");
+}
+
+function updateEmptyState(cardsContainer) {
+    const cards = cardsContainer.querySelectorAll(".card");
+
+    if (cards.length === 0) {
+        cardsContainer.innerHTML =
+            '<div class="empty-card">No cards</div>';
+    }
+}
+
 async function saveBoard(){
     if(!pendingChanges){return}
     const cards = collectBoardState()
@@ -96,8 +206,8 @@ async function saveBoard(){
         return
     }
     pendingChanges = false
-    await loadColumns()
-    alert("Saved")
+    clearUnsaved();
+    await loadBoard();
 }
 
 function collectBoardState(){
@@ -110,18 +220,16 @@ function collectBoardState(){
         })
     return cards
 }
-/////////////////////////////////////////
+//-------------------------------------------------------------
 
 async function createColumn(){
-    const input = document.getElementById("column-title")
-    const title = input.value.trim()
+    const title = prompt("Column title")
     if(!title){return}
     const url_column = `/api/boards/${boardId}/columns`
     const res = await window.api.post(url_column, {title})
 
-    if(!res || !res.ok){return}
-    input.value = ""
-    await loadColumns()
+    if(!res || !res.ok){alert("Failed to create column");return}
+    await loadBoard();
 }
 
 async function createCard(columnId){
@@ -165,7 +273,31 @@ async function deleteCard(cardId,columnId){
     await loadCards(columnId)
 }
 
+async function editColumn(columnId){
+    const title = prompt("New column title");
+    if (title === null || !title.trim()) {return;}
+    const res = await window.api.patch(`/api/columns/${columnId}`,{title: title.trim()});
+    if (!res?.ok) {
+        alert("Update failed");
+        return;
+    }
+    await loadBoard();
+}
 
+async function deleteColumn(columnId){
+    const confirmed = confirm("Delete column and all cards inside?");
+    if (!confirmed) { return;}
+    const res = await window.api.del(`/api/columns/${columnId}`);
+    if (!res?.ok) {
+        alert("Delete failed");
+        return;
+    }
+    await loadBoard();
+}
+//-------------------------------------------------------------
+
+
+//-------------------------------------------------------------
 async function addMember(){
     const username =document.getElementById("member-username").value.trim()
     const role =document.getElementById("member-role").value
@@ -207,7 +339,7 @@ async function loadUsers(){
 }
 
 async function loadMembers(){
-    const res = await window.api.get(`/api/members/${boardId}/`)
+    const res = await window.api.get(`/api/members/${boardId}`)
     if(!res || !res.ok){
         alert("Failed to load members")
         return
@@ -216,7 +348,29 @@ async function loadMembers(){
     renderMembers(data)
 }
 
-//-------------------------------------------------------------
+async function removeMember(userId){
+    const confirmed = confirm("Remove member?")
+    if(!confirmed){return}
+    const res = await window.api.del(`/api/members/${boardId}/${userId}`)
+    if(!res || !res.ok){
+        alert("Failed")
+        return
+    }
+    await loadMembers()
+}
+
+async function changeRole(username, currentRole){
+    const role = currentRole === "editor"? "viewer" : "editor"
+    const res = await window.api.patch(`/api/members/${boardId}/${username}`,{ role })
+
+    if(!res || !res.ok){
+        alert("Failed")
+        return
+    }
+
+    await loadMembers()
+}
+
 function renderMembers(data){
     const editorsContainer = document.getElementById("editors-list")
     const viewersContainer = document.getElementById("viewers-list")
@@ -243,30 +397,31 @@ function renderMembers(data){
         }
     })
 }
-
-async function removeMember(userId){
-    const confirmed = confirm("Remove member?")
-    if(!confirmed){return}
-    const res = await window.api.del(`/api/members/${boardId}/${userId}`)
-    if(!res || !res.ok){
-        alert("Failed")
-        return
-    }
-    await loadMembers()
-}
-
-async function changeRole(username, currentRole){
-    const role = currentRole === "editor"? "viewer" : "editor"
-    const res = await window.api.patch(`/api/members/${boardId}/${username}`,{ role })
-
-    if(!res || !res.ok){
-        alert("Failed")
-        return
-    }
-
-    await loadMembers()
-}
 //-------------------------------------------------------------
+
+function formatUpdated(dateString, isCreated = false, by = null) {
+    const date = new Date(dateString);
+    const now = new Date();
+
+    let text = isCreated ? "Created" : "Updated";
+
+    if (by) {
+        text += ` by <span class="owner-name">${by}</span>`;
+    }
+
+    const diffMs = now - date;
+    const diffMinutes = Math.floor(diffMs / 1000 / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMinutes < 1) return `${text} just now`;
+    if (diffMinutes < 60) return `${text} ${diffMinutes}m ago`;
+    if (diffHours < 24) return `${text} ${diffHours}h ago`;
+    if (diffDays === 1) return `${text} yesterday`;
+    if (diffDays < 30) return `${text} ${diffDays} days ago`;
+
+    return `${text} ${date.toLocaleDateString()}`;
+}
 
 function openMembersDialog(){loadMembers();document.getElementById("members-dialog").showModal()}
 function closeMembersDialog(){document.getElementById("members-dialog").close()}
@@ -284,5 +439,17 @@ function hideClassNameElements(className){
         })
 }
 
+document.addEventListener("click", e => {
+    if(!e.target.closest(".card-menu")){
+        document
+            .querySelectorAll(".card-dropdown.show")
+            .forEach(menu => menu.classList.remove("show"))
+    }
+})
+document.addEventListener("click", (e) => {
+    if (!e.target.closest(".column-menu")) {
+        document.querySelectorAll(".column-dropdown.show")
+            .forEach(menu => menu.classList.remove("show"));
+    }
+});
 document.addEventListener("DOMContentLoaded",loadBoard)
-document.getElementById("member-username").addEventListener("input", loadUsers)
