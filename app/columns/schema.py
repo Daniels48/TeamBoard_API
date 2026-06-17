@@ -19,3 +19,7 @@ class BoardColumnResponse(BaseModel):
 
     created_at: datetime
     updated_at: datetime
+
+
+class BoardColumnUpdate(BaseModel):
+    title: str

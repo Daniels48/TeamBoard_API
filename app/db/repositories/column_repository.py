@@ -10,25 +10,15 @@ from app.db.models import BoardColumn
 class BoardColumnRepository:
 
     @staticmethod
-    async def create(
-        db: AsyncSession,
-        column: BoardColumn,
-    ) -> BoardColumn:
-
+    async def create(db: AsyncSession,column: BoardColumn) -> BoardColumn:
         db.add(column)
-
         await db.flush()
         await db.refresh(column)
-
         return column
 
 
     @staticmethod
-    async def get_by_board_id(
-        db: AsyncSession,
-        board_id: int,
-    ) -> list[BoardColumn]:
-
+    async def get_by_board_id(db: AsyncSession, board_id: int) -> list[BoardColumn]:
         stmt = (
             select(BoardColumn)
             .where(
@@ -41,16 +31,10 @@ class BoardColumnRepository:
         )
 
         result = await db.execute(stmt)
-
-        return list(
-            result.scalars().all()
-        )
+        return list(result.scalars().all())
 
     @staticmethod
-    async def get_by_public_id(
-            db: AsyncSession,
-            public_id: UUID,
-    ) -> BoardColumn | None:
+    async def get_by_public_id(db: AsyncSession, public_id: UUID) -> BoardColumn | None:
         stmt = (
             select(BoardColumn)
             .options(
@@ -68,10 +52,7 @@ class BoardColumnRepository:
 
 
     @staticmethod
-    async def get_by_id(
-        db: AsyncSession,
-        column_id: int,
-    ) -> BoardColumn | None:
+    async def get_by_id(db: AsyncSession, column_id: int) -> BoardColumn | None:
 
         stmt = (
             select(BoardColumn)

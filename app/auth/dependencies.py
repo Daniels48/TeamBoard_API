@@ -12,7 +12,6 @@ from app.auth.utils import create_session_data
 
 from app.core.Exceptions.exceptions import AppException, ErrorCode
 from app.core.config import settings
-from app.core.observability.context import user_id_ctx, request_ctx
 from app.core.redis_service import SessionCache
 
 from app.db.database import get_db
@@ -29,6 +28,8 @@ def get_auth_service():
     return AuthService()
 
 
+
+
 async def get_token_payload(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
     payload = TokenService().decode_access_token(token)
@@ -36,27 +37,18 @@ async def get_token_payload(request: Request, credentials: HTTPAuthorizationCred
     return payload
 
 
-async def verify_session(
-    payload: AccessTokenPayload = Depends(get_token_payload),
-    db: AsyncSession = Depends(get_db)):
-
+async def verify_session(payload: AccessTokenPayload = Depends(get_token_payload),db: AsyncSession = Depends(get_db)):
     session_redis = await SessionCache.get(session_id=payload.sid_str)
 
     if session_redis is None:
         session_db = await UserSessionRepository.get_by_session_id(db=db, session_id=payload.sid)
 
         if not session_db:
-            logger.warning(
-                "Session not found",
-                extra={"event": "session_not_found"}
-            )
+            logger.warning("Session not found",extra={"event": "session_not_found"})
             raise AppException("Unauthorized", 401, ErrorCode.SESSION_NOT_FOUND)
 
         if session_db.revoked_at is not None:
-            logger.warning(
-                "Session revoked",
-                extra={"event": "session_revoked"}
-            )
+            logger.warning("Session revoked",extra={"event": "session_revoked"})
             raise AppException("Unauthorized", 401, ErrorCode.SESSION_REVOKED)
 
         if session_db.expires_at < datetime.now(timezone.utc):
@@ -71,9 +63,7 @@ async def verify_session(
     return payload
 
 
-async def get_current_user(
-    payload: AccessTokenPayload = Depends(verify_session),
-    db: AsyncSession = Depends(get_db)):
+async def get_current_user(payload: AccessTokenPayload = Depends(verify_session),db: AsyncSession = Depends(get_db)):
 
     public_id = payload.sub_str
 

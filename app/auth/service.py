@@ -35,12 +35,7 @@ class AuthService:
         self.password_service = PasswordService()
         self.token_service = TokenService()
 
-    async def _create_session_and_tokens(
-            self,
-            db: AsyncSession,
-            user: User,
-            request: Request,
-    ) -> dict:
+    async def _create_session_and_tokens(self, db: AsyncSession,user: User,request: Request) -> dict:
 
         refresh_token = self.token_service.generate_refresh_token()
         refresh_token_hash = self.token_service.hash_refresh_token(refresh_token)
@@ -270,12 +265,7 @@ class AuthService:
                 400,
             )
 
-    async def reset_password(
-            self,
-            db: AsyncSession,
-            token: str,
-            new_password: str,
-    ) -> None:
+    async def reset_password(self,db: AsyncSession, token: str, new_password: str) -> None:
         try:
             payload = PasswordResetService().decrypt(token)
         except InvalidToken:

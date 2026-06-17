@@ -1,20 +1,20 @@
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, status, Depends, Request, Response, HTTPException, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, status, Depends, Request, Response, BackgroundTasks
+
 from uuid import UUID
 
 from app.auth.cookies import set_refresh_cookie
-from app.auth.dependencies import get_auth_service, get_current_user
+from app.auth.dependencies import get_auth_service
 from app.auth.security import TokenService
 from app.auth.service import AuthService, PasswordResetService
-from app.auth.sсhemas import UserRegister, AccessTokenResponse, UserLogin, VerifyEmailRequest, ForgotPasswordRequest, \
-    VerifyResetCodeRequest, ResetPasswordRequest
+from app.auth.sсhemas import (
+    UserRegister, AccessTokenResponse, UserLogin, VerifyEmailRequest, ForgotPasswordRequest, VerifyResetCodeRequest, ResetPasswordRequest
+)
 from app.core.Exceptions.exceptions import AppException
+from app.core.dependencies import DBSession, CurrentUser
 from app.core.redis_service import SessionCache
-from app.db.database import get_db
-from app.db.models import User
 from app.db.repositories.session_repository import UserSessionRepository
 from app.db.repositories.user_repository import UserRepository
 from app.mail.service import EmailService
@@ -30,37 +30,20 @@ def _build_auth_response(response: Response, tokens):
 
 
 @auth_router.post(path="/register", response_model=AccessTokenResponse, status_code=status.HTTP_201_CREATED)
-async def register(
-    data: UserRegister,
-    response: Response,
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-    auth_service: AuthService = Depends(get_auth_service)):
-
+async def register(data: UserRegister,response: Response,request: Request, db: DBSession, auth_service: AuthService = Depends(get_auth_service)):
     tokens = await auth_service.register(db, data, request)
     return _build_auth_response(response, tokens)
 
 
 @auth_router.post(path="/login",response_model=AccessTokenResponse)
-async def login(
-    data: UserLogin,
-    response: Response,
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-    auth_service: AuthService = Depends(get_auth_service)):
-
+async def login(data: UserLogin,response: Response,request: Request,db: DBSession, auth_service: AuthService = Depends(get_auth_service)):
     tokens = await auth_service.login(db, data, request)
     return _build_auth_response(response, tokens)
 
 
 @auth_router.post("/refresh", response_model=AccessTokenResponse)
-async def refresh(
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-    auth_service: AuthService = Depends(get_auth_service)):
-
+async def refresh(request: Request,db: DBSession, auth_service: AuthService = Depends(get_auth_service)):
     refresh_token = request.cookies.get("refresh_token")
-
     if not refresh_token:
         logger.warning(
             "Refresh token in cookie is missing",
@@ -71,11 +54,7 @@ async def refresh(
     return await auth_service.refresh(db, refresh_token)
 
 @auth_router.delete("/sessions/{session_id}", status_code=200)
-async def logout_device(
-    session_id: UUID,
-    current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)):
-
+async def logout_device(session_id: UUID, current_user: CurrentUser, db: DBSession):
     session = await UserSessionRepository.get_by_session_id(db, session_id)
 
     if not session or session.user_id != current_user.id:
@@ -90,11 +69,7 @@ async def logout_device(
     return {"message": "Logged out"}
 
 @auth_router.post("/logout", status_code=204)
-async def logout(
-    request: Request,
-    response: Response,
-    db: AsyncSession = Depends(get_db),
-):
+async def logout(request: Request,response: Response,db: DBSession):
     refresh_token = request.cookies.get("refresh_token")
 
     if refresh_token:
@@ -111,16 +86,13 @@ async def logout(
     return {"message": "Logged out"}
 
 @auth_router.post("/logout-all", status_code=204)
-async def logout_all(current_user=Depends(get_current_user),db: AsyncSession = Depends(get_db)):
+async def logout_all(current_user: CurrentUser, db: DBSession):
     await UserSessionRepository.revoke_all_session(db, current_user.id)
     return {"message": "Logged out"}
 
-@auth_router.post("/send-verification-email")
-async def send_verification_email(
-    background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user)):
 
+@auth_router.post("/send-verification-email")
+async def send_verification_email(background_tasks: BackgroundTasks, db: DBSession, user: CurrentUser):
     if user.is_verified:
         raise AppException("Email already verified",400)
 
@@ -130,15 +102,14 @@ async def send_verification_email(
 
     return {"message": "Verification email sent"}
 
+
 @auth_router.post("/verify-email")
-async def verify_email(data: VerifyEmailRequest,db: AsyncSession = Depends(get_db),user: User = Depends(get_current_user)):
+async def verify_email(data: VerifyEmailRequest, user: CurrentUser, db: DBSession):
     return await AuthService.verify_email(db=db, user=user, code=data.code)
 
+
 @auth_router.post("/forgot-password")
-async def forgot_password(
-    data: ForgotPasswordRequest,
-    background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db)):
+async def forgot_password(data: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: DBSession):
 
     user = await UserRepository.get_by_email(db=db, email=data.email)
 
@@ -153,10 +124,7 @@ async def forgot_password(
     return {"message":"If the account exists, a reset code has been sent"}
 
 @auth_router.post("/verify-reset-code")
-async def verify_reset_code(
-    data: VerifyResetCodeRequest,
-    db: AsyncSession = Depends(get_db),
-):
+async def verify_reset_code(data: VerifyResetCodeRequest,db: DBSession):
     user = await UserRepository.get_by_email(db=db,email=data.email,)
 
     if not user:
@@ -183,9 +151,6 @@ async def verify_reset_code(
     return {"reset_token": reset_token}
 
 @auth_router.post("/reset-password")
-async def reset_password(
-    data: ResetPasswordRequest,
-    db: AsyncSession = Depends(get_db)):
-
+async def reset_password(data: ResetPasswordRequest,db: DBSession):
     await AuthService().reset_password(db=db, token=data.token, new_password=data.new_password)
     return {"message": "Password reset successfully"}

@@ -24,7 +24,7 @@
             </div>
             <div class="board-butn">
                 <div class="board-role-badge" id="board-role-badge"></div>
-                <div class="board-header-actions not-creator">
+                <div class="board-header-actions not-creator perm-manage-members">
                     <button class="team-btn" id="members-btn" onclick="openMembersDialog()">👥 Team</button>
                 </div>
             </div>
@@ -32,16 +32,14 @@
         </div>
     </div>
 
-
-
     <div class="container-columns">
         <div class="columns-header">
             <h2 class="h2-col">Columns</h2>
-            <button class="add-column-btn" id="show-column-form" onclick="createColumn()">+ Add Column</button>
-             <div class="board-actions">
+            <button class="add-column-btn perm-manage-members" id="show-column-form" onclick="createColumn()">+ Add Column</button>
+             <div class="board-actions perm-edit">
                    <div id="unsaved-indicator" class="unsaved-indicator hidden">
                     <span class="dot"></span> Unsaved changes </div>
-                <button id="save-positions-btn" class="save-btn hidden not-viewer" onclick="saveBoard()">Save Positions</button>
+                <button id="save-positions-btn" class="save-btn hidden perm-edit" onclick="saveBoard()">Save Positions</button>
             </div>
         </div>
         <div id="columns" class="columns"></div>

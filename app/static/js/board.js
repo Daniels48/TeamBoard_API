@@ -19,9 +19,11 @@ function renderBoards(board) {
     const columns = board.columns;
     const role = board.board_role;
     const time_created_base = board.created_at;
+    const public_id = board.public_id;
 
-    function renderColumns(columns){
+    function renderColumns(columns, public_id){
         const container = document.getElementById("columns")
+
         container.innerHTML = ""
         columns.forEach(column => {
             const div = document.createElement("div")
@@ -29,17 +31,17 @@ function renderBoards(board) {
 
             div.innerHTML = `
                   <div class="container-column">
-                      <h3>${column.title} (${column.cards.length})</h3>
-                      <div class="column-menu not-viewer">
+                      <h3>${column.title} (${column.cards.length}) </h3>
+                      <div class="column-menu perm-edit">
                         <button class="menu-btn"onclick="toggleColumnMenu(this)">⋮</button>
                         <div class="column-dropdown">
-                            <button class="black" onclick="editColumn('${column.public_id}')">✏️ Edit</button>
-                            <button class="danger" onclick="deleteColumn('${column.public_id}')">🗑️ Delete</button>
+                            <button class="black perm-edit" onclick="editColumn('${board.public_id}','${column.public_id}')">✏️ Edit</button>
+                            <button class="danger perm-manage-members" onclick="deleteColumn('${column.public_id}')">🗑️ Delete</button>
                         </div>
                       </div>
                   </div>
                 <div class="cards" id="cards-${column.public_id}" data-column-id="${column.public_id}"></div>
-                <button class="not-viewer" onclick="createCard('${column.public_id}')">Add Card</button>
+                <button class="perm-edit" onclick="createCard('${column.public_id}')">Add Card</button>
             `
 
             container.appendChild(div)
@@ -85,10 +87,10 @@ function renderBoards(board) {
                 <div class="card-header">
                     <div class="card-title">${card.title}</div>
                     <div class="card-menu">
-                        <button class="menu-btn not-viewer"onclick="toggleCardMenu(this)">⋮</button>
+                        <button class="menu-btn perm-edit"onclick="toggleCardMenu(this)">⋮</button>
                         <div class="card-dropdown">
-                            <button class="edit" onclick="editCard('${card.public_id}','${columnId}')">✏️ Edit</button>
-                            <button class="danger" onclick="deleteCard('${card.public_id}','${columnId}')">🗑️ Delete</button>
+                            <button class="edit perm-edit" onclick="editCard('${card.public_id}','${columnId}')">✏️ Edit</button>
+                            <button class="danger perm-manage-members" onclick="deleteCard('${card.public_id}','${columnId}')">🗑️ Delete</button>
                         </div>
                     </div>
                 </div>
@@ -101,34 +103,53 @@ function renderBoards(board) {
             container.appendChild(div)
         })
     }
+    function renderDataTitle(board){
+        document.getElementById("board-title").textContent = board.title
+        document.getElementById("board-description").textContent = board.description || ""
+
+        document.getElementById("member-username").addEventListener("input", loadUsers)
+
+        const badge = document.getElementById("board-role-badge")
+        badge.textContent = role;
+        badge.className = `board-role ${role}`
+
+        const time_board_created = document.querySelector(".icon-data-created");
+        time_board_created.innerHTML = formatUpdated(time_created_base, true, board.owner_username);
+
+        const header_col = document.querySelector(".h2-col");
+        header_col.textContent = `Columns (${columns.length})`
+    }
+    function applyRole(role){
+    const class_manage = "perm-manage-members";
+    const class_edit = "perm-edit";
+
+    const permissions = {
+        admin: {
+            edit: true,
+            manageMembers: true,
+        },
+        owner: {
+            edit: true,
+            manageMembers: true,
+        },
+        editor: {
+            edit: true,
+            manageMembers: false,
+        },
+        viewer: {
+            edit: false,
+            manageMembers: false,
+        }
+    }
+
+    const p = permissions[role]
+    if(!p.edit){hideClassNameElements(class_edit);}
+    if(!p.manageMembers){hideClassNameElements(class_manage);}
+}
 
     renderColumns(columns)
-
-    document.getElementById("board-title").textContent = board.title
-    document.getElementById("board-description").textContent =board.description || ""
-
-    document.getElementById("member-username").addEventListener("input", loadUsers)
-
-    const badge = document.getElementById("board-role-badge")
-    badge.textContent = role;
-    badge.className = `board-role ${role}`
-
-    const time_board_created = document.querySelector(".icon-data-created");
-    time_board_created.innerHTML = formatUpdated(time_created_base, true, board.owner_username);
-
-    const header_col = document.querySelector(".h2-col");
-    header_col.textContent = `Columns (${columns.length})`
-
-    if(!canManageMembers(role)){
-        document.getElementById("members-btn").style.display = "none"
-    }
-    if(isViewer(role)) {
-        hideClassNameElements("not-viewer");
-    }
-
-    if(isEditor(role)) {
-        hideClassNameElements("not-creator");
-    }
+    renderDataTitle(board)
+    applyRole(role);
 }
 
 function toggleCardMenu(button){
@@ -244,7 +265,7 @@ async function createCard(columnId){
         alert("Failed to create card")
         return
     }
-    await loadCards(columnId)
+    await loadBoard()
 }
 
 async function editCard(cardId, columnId){
@@ -258,7 +279,7 @@ async function editCard(cardId, columnId){
         alert("Update failed")
         return
     }
-    await loadCards(columnId)
+    await loadBoard()
 }
 
 async function deleteCard(cardId,columnId){
@@ -270,13 +291,13 @@ async function deleteCard(cardId,columnId){
         alert("Delete failed")
         return
     }
-    await loadCards(columnId)
+    await loadBoard()
 }
 
-async function editColumn(columnId){
+async function editColumn(boardId, columnId){
     const title = prompt("New column title");
     if (title === null || !title.trim()) {return;}
-    const res = await window.api.patch(`/api/columns/${columnId}`,{title: title.trim()});
+    const res = await window.api.patch(`/api/boards/${boardId}/columns/${columnId}`,{title: title.trim()});
     if (!res?.ok) {
         alert("Update failed");
         return;
@@ -284,10 +305,10 @@ async function editColumn(columnId){
     await loadBoard();
 }
 
-async function deleteColumn(columnId){
+async function deleteColumn(boardId, columnId){
     const confirmed = confirm("Delete column and all cards inside?");
     if (!confirmed) { return;}
-    const res = await window.api.del(`/api/columns/${columnId}`);
+    const res = await window.api.del(`/api/boards/${boardId}/columns/${columnId}`);
     if (!res?.ok) {
         alert("Delete failed");
         return;
@@ -434,9 +455,7 @@ function canEditBoard(role){return isAdmin(role) || isOwner(role) || isEditor(ro
 function hideClassNameElements(className){
     document
         .querySelectorAll(`.${className}`)
-        .forEach(element => {
-            element.style.display = "none"
-        })
+        .forEach(element => {element.style.display = "none"})
 }
 
 document.addEventListener("click", e => {

@@ -122,10 +122,13 @@ class BoardRepository:
         stmt = (
             select(Board)
             .options(
-                selectinload(Board.columns)
-                .selectinload(BoardColumn.cards),
+                selectinload(Board.owner),
+
                 selectinload(Board.members)
                 .selectinload(BoardMember.user),
+
+                selectinload(Board.columns)
+                .selectinload(BoardColumn.cards),
 
                 with_loader_criteria(
                     BoardColumn,
