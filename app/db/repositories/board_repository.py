@@ -199,6 +199,9 @@ class BoardRepository:
     async def get_by_public_id(db: AsyncSession, public_id: UUID) -> Board | None:
         stmt = (
             select(Board)
+            .options(
+                selectinload(Board.members)
+            )
             .where(
                 Board.public_id == public_id,
                 Board.deleted_at.is_(None)
