@@ -1,10 +1,14 @@
 from datetime import datetime, timezone
 from uuid import UUID
-from sqlalchemy import select, or_
+from sqlalchemy import select, func, case, and_, or_, cast, literal, String
+from sqlalchemy.orm import aliased
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload, with_loader_criteria
+from sqlalchemy.orm import selectinload, with_loader_criteria, joinedload
 
-from app.db.models import Board, BoardColumn, Card, BoardMember
+from app.boards.schema import BoardResponse
+from app.db.models import Board, BoardColumn, Card, BoardMember, User
+
+Owner = aliased(User)
 
 
 def now_dt():
@@ -35,40 +39,161 @@ class BoardRepository:
         return list(result.scalars().all())
 
     @staticmethod
-    async def get_all(db: AsyncSession) -> list[Board]:
+    async def get_all_boards(db: AsyncSession) -> list[BoardResponse]:
         stmt = (
-            select(Board)
-            .where(Board.deleted_at.is_(None))
+            select(
+                Board.public_id,
+                Board.title,
+                Board.description,
+                Board.created_at,
+                Board.updated_at,
+
+                Owner.username.label("owner_username"),
+
+                literal("admin").label("role"),
+
+                func.count(
+                    func.distinct(BoardColumn.id)
+                ).label("columns_count"),
+
+                func.count(
+                    func.distinct(Card.id)
+                ).label("cards_count"),
+            )
+            .join(
+                Owner,
+                Owner.id == Board.owner_id,
+            )
+            .outerjoin(
+                BoardColumn,
+                and_(
+                    BoardColumn.board_id == Board.id,
+                    BoardColumn.deleted_at.is_(None),
+                ),
+            )
+            .outerjoin(
+                Card,
+                and_(
+                    Card.column_id == BoardColumn.id,
+                    Card.deleted_at.is_(None),
+                ),
+            )
+            .where(
+                Board.deleted_at.is_(None),
+            )
+            .group_by(
+                Board.id,
+                Board.public_id,
+                Board.title,
+                Board.description,
+                Board.created_at,
+                Board.updated_at,
+                Owner.username,
+            )
             .order_by(Board.created_at.desc())
         )
 
         result = await db.execute(stmt)
 
-        return list(result.scalars().all())
+        return [
+            BoardResponse(
+                public_id=row.public_id,
+                title=row.title,
+                description=row.description,
+                created_at=row.created_at,
+                updated_at=row.updated_at,
+
+                owner_username=row.owner_username,
+                role=row.role,
+
+                columns_count=row.columns_count,
+                cards_count=row.cards_count,
+            )
+            for row in result.all()
+        ]
 
     @staticmethod
-    async def get_users_boards(db: AsyncSession,user_id: int) -> list[Board]:
+    async def get_users_boards(db: AsyncSession, user_id: int) -> list[BoardResponse]:
         stmt = (
-            select(Board)
+            select(
+                Board.public_id,
+                Board.title,
+                Board.description,
+                Board.created_at,
+                Board.updated_at,
+                Owner.username.label("owner_username"),
+                case(
+                    (
+                        Board.owner_id == user_id,
+                        literal("owner"),
+                    ),else_=cast(BoardMember.role, String),
+                ).label("role"),
+                func.count(func.distinct(BoardColumn.id)).label("columns_count"),
+                func.count(func.distinct(Card.id)).label("cards_count"),
+            )
+            .join(Owner, Owner.id == Board.owner_id)
             .outerjoin(
                 BoardMember,
-                BoardMember.board_id == Board.id,
+                and_(
+                    BoardMember.board_id == Board.id,
+                    BoardMember.user_id == user_id,
+                ),
+            )
+            .outerjoin(
+                BoardColumn,
+                and_(
+                    BoardColumn.board_id == Board.id,
+                    BoardColumn.deleted_at.is_(None),
+                ),
+            )
+            .outerjoin(
+                Card,
+                and_(
+                    Card.column_id == BoardColumn.id,
+                    Card.deleted_at.is_(None),
+                ),
             )
             .where(
+                Board.deleted_at.is_(None),
                 or_(
                     Board.owner_id == user_id,
                     BoardMember.user_id == user_id,
                 ),
-                Board.deleted_at.is_(None),
+            )
+            .group_by(
+                Board.id,
+                Board.public_id,
+                Board.title,
+                Board.description,
+                Board.created_at,
+                Board.updated_at,
+                Owner.username,
+                Board.owner_id,
+                BoardMember.role,
             )
             .order_by(Board.created_at.desc())
-            .distinct()
         )
 
         result = await db.execute(stmt)
 
-        return list(result.scalars().all())
+        rows = result.all()
 
+        return [
+            BoardResponse(
+                public_id=row.public_id,
+                title=row.title,
+                description=row.description,
+                created_at=row.created_at,
+                updated_at=row.updated_at,
+
+                owner_username=row.owner_username,
+                role=row.role,
+
+                columns_count=row.columns_count,
+                cards_count=row.cards_count,
+            )
+            for row in rows
+        ]
 
     @staticmethod
     async def get_by_public_id(db: AsyncSession, public_id: UUID) -> Board | None:

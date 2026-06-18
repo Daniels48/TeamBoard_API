@@ -1,6 +1,6 @@
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.cards.schema import CardCreate, CardUpdate
+from app.cards.schema import CardCreate, CardUpdate, BoardLayoutUpdate, CardPosition
 from app.core.Exceptions.exceptions import AppException
 from app.db.models import Card, User
 from app.db.repositories.board_repository import BoardRepository
@@ -45,7 +45,6 @@ class CardService:
 
         return await CardRepository.get_by_column_id(db=db,column_id=column.id)
 
-
     @staticmethod
     async def update_card(db: AsyncSession, card_public_id: UUID, user: User, data: CardUpdate) -> Card:
 
@@ -70,7 +69,6 @@ class CardService:
         await db.refresh(card)
 
         return card
-
 
     @staticmethod
     async def delete_card(db: AsyncSession, card_public_id: UUID, user: User) -> None:

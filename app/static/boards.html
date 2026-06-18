@@ -11,24 +11,12 @@
 <div class="container">
 
     <div class="header">
-        <h1>Boards</h1>
+        <div class="text-header">
+            <h1>Boards</h1>
+            <button class="btn-text-head" onclick="createBoard()">+ New Board</button>
+        </div>
 
         <div id="user-info"></div>
-    </div>
-
-    <div class="create-board">
-
-        <input id="title" type="text" placeholder="Board title">
-        <textarea id="description" placeholder="Board description"></textarea>
-        <label>
-            <input id="is_public" type="checkbox">
-            Public board
-        </label>
-
-        <button onclick="createBoard()">
-            Create Board
-        </button>
-
     </div>
 
     <hr>

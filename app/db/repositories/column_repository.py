@@ -50,6 +50,17 @@ class BoardColumnRepository:
 
         return result.scalar_one_or_none()
 
+    @staticmethod
+    async def get_by_public_ids(db: AsyncSession, public_ids: list[UUID]) -> list[BoardColumn]:
+        stmt = (
+            select(BoardColumn)
+            .where(
+                BoardColumn.public_id.in_(public_ids),
+                BoardColumn.deleted_at.is_(None),
+            )
+        )
+        result = await db.execute(stmt)
+        return list(result.scalars().all())
 
     @staticmethod
     async def get_by_id(db: AsyncSession, column_id: int) -> BoardColumn | None:

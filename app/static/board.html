@@ -23,9 +23,18 @@
 
             </div>
             <div class="board-butn">
-                <div class="board-role-badge" id="board-role-badge"></div>
-                <div class="board-header-actions not-creator perm-manage-members">
-                    <button class="team-btn" id="members-btn" onclick="openMembersDialog()">👥 Team</button>
+                <div class="container-board-btn">
+                    <div class="board-role-badge" id="board-role-badge"></div>
+                    <div class="board-header-actions not-creator perm-manage-members">
+                        <button class="team-btn" id="members-btn" onclick="openMembersDialog()">👥 Team</button>
+                    </div>
+                </div>
+                <div class="three-dot">
+                   <button class="menu-btn perm-manage-members" id="board-three-dot" onclick="toggleBoardMenu(this)">⋮</button>
+                    <div class="board-dropdown">
+                        <button class="edit edit-board perm-manage-members">✏️ Edit</button>
+                        <button class="danger del-board perm-manage-members">🗑️ Delete</button>
+                    </div>
                 </div>
             </div>
 

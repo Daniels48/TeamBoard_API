@@ -24,3 +24,4 @@ async def update_card(card_id: UUID,data: CardUpdate, db: DBSession, user: Curre
 @router_card.delete("/cards/{card_id}",status_code=204)
 async def delete_card(card_id: UUID,db: DBSession, user: CurrentUser):
     await CardService.delete_card(db=db,card_public_id=card_id,user=user)
+

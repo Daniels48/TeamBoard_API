@@ -24,16 +24,32 @@ class BoardResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    owner_username: str
+    role: str
+
+    columns_count: int
+    cards_count: int
+
     model_config = ConfigDict(
         from_attributes=True
     )
 
+class BoardBaseResponse(BaseModel):
+    public_id: UUID
+    title: str
+    description: str | None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
 class ColumnFullResponse(BoardColumnResponse):
     cards: list[CardResponse]
 
 
-class BoardFullResponse(BoardResponse):
+class BoardFullResponse(BoardBaseResponse):
     board_role: str | None = None
     owner_username: str | None = None
     columns: list[ColumnFullResponse]

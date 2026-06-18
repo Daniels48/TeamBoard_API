@@ -14,6 +14,30 @@ async function loadBoards() {
     renderBoards(boards)
 }
 
+function formatUpdated(dateString, isCreated = false, by = null) {
+    const date = new Date(dateString);
+    const now = new Date();
+
+    let text = isCreated ? "Created" : "Updated";
+
+    if (by) {
+        text += ` by <span class="owner-name">${by}</span>`;
+    }
+
+    const diffMs = now - date;
+    const diffMinutes = Math.floor(diffMs / 1000 / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMinutes < 1) return `${text} just now`;
+    if (diffMinutes < 60) return `${text} ${diffMinutes}m ago`;
+    if (diffHours < 24) return `${text} ${diffHours}h ago`;
+    if (diffDays === 1) return `${text} yesterday`;
+    if (diffDays < 30) return `${text} ${diffDays} days ago`;
+
+    return `${text} ${date.toLocaleDateString()}`;
+}
+
 
 function renderBoards(boards){
     const container = document.getElementById("boards")
@@ -27,28 +51,19 @@ function renderBoards(boards){
         const div = document.createElement("div")
         div.className = "board"
         div.innerHTML = `
-        <h3>${board.title}</h3>
-        <p>
-            ${board.description || "No description"}
-        </p>
-        <div class="board-footer">
-            <span>
-                ${new Date(board.created_at)
-                    .toLocaleDateString()}
-            </span>
-
-            <span class="${
-                board.is_public
-                ? "public"
-                : "private"
-            }">
-                ${
-                    board.is_public
-                    ? "🌍 Public"
-                    : "🔒 Private"
-                }
-            </span>
-        </div>
+            <div class="board-header-data">
+                <h3>${board.title}</h3>
+                <div class="board-role ${board.role.toLowerCase()}">${board.role}</div>
+            </div>
+            <div class="board-description">${board.description || "No description"}</div>
+            <div class="board-footer">
+                <div class="board-count-data">
+                    <div class="board-columns-count">${board.columns_count} columns</div>
+                    <div clas="board-dot-count">•</div>
+                    <div clas="board-cards-count">${board.cards_count} cards</div>
+                </div>
+                <span class="created-board">${formatUpdated(board.created_at, true, board.owner_username)}</span>
+            </div>
         `
         div.onclick = () => {window.location.href =`/static/board.html?id=${board.public_id}`}
 
@@ -58,27 +73,19 @@ function renderBoards(boards){
 
 
 async function createBoard(){
-    const title = document.getElementById("title").value.trim()
-    const description = document.getElementById("description").value.trim()
-    const isPublic = document.getElementById("is_public").checked
-
+    const title = prompt("Card title").trim()
+    const description = prompt("Description (optional)").trim() || ""
     if(!title){
         alert("Введите название")
         return
     }
-
     const url_boards = "/api/boards"
-    const res = await window.api.post(url_boards, {title,description,is_public:isPublic})
+    const res = await window.api.post(url_boards,  {title, description});
 
     if(!res || !res.ok){
         alert("Ошибка создания доски")
         return
     }
-
-    document.getElementById("title").value = ""
-    document.getElementById("description").value = ""
-    document.getElementById("is_public").checked = false
-
     await loadBoards()
 }
 

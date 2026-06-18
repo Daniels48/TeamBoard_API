@@ -11,13 +11,13 @@ async function register(){
         last_name:document.getElementById("last_name").value.trim()
     };
 
-    if(!body.username){
-        error.innerText =Username is required";
+     if(!body.username){
+        error.innerText = "Username is required";
         return;
-    }
+     }
 
     if(!body.email){
-        error.innerText ="Email is required";
+        error.innerText = "Email is required";
         return;
     }
 

@@ -3,6 +3,7 @@ body{
     background: #f4f6fa;
     margin: 0;
     padding: 40px;
+    background: #f9fafb;
 }
 
 .container{
@@ -74,13 +75,23 @@ button{
 
 #boards{
     display: grid;
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+
+
+.board p{
+    color: #6b7280;
+    margin-bottom: 15px;
 }
 
 .board{
     background: white;
-
+    min-height: 120px;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
 
     border-radius: 12px;
 
@@ -101,20 +112,12 @@ button{
         0 8px 20px rgba(0,0,0,0.12);
 }
 
-.board h3{
-    margin-top: 0;
-    margin-bottom: 10px;
-}
-
-.board p{
-    color: #6b7280;
-    margin-bottom: 15px;
-}
-
 .board-footer{
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    margin-top: auto;
+    flex-direction: column;
+
 
     font-size: 13px;
     color: #6b7280;
@@ -128,4 +131,110 @@ button{
 .private{
     color: #ef4444;
     font-weight: 600;
+}
+
+.text-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+.btn-text-head{
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+
+    background: #3b82f6;
+    color: white;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+
+}
+.btn-text-head:hover {
+    transform: translateY(-1px);
+}
+
+.board-role{
+  font-weight: 700;
+  text-transform: uppercase;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.board-header-data{
+    display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #6b7280;
+}
+
+.board-header-data h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-top: 0;
+    margin-bottom: 0;
+
+}
+
+.board-description{
+    color: #6b7280;
+    margin-bottom: 7px;
+    margin-top: 8px;
+}
+
+.board-columns-count{
+    margin-bottom: 0px;
+}
+
+.board-cards-count{
+    margin-bottom: 0px;
+}
+
+.created-board{
+    margin-top: 5px;
+}
+
+.board-count-data{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    align-items: center;
+    flex-direction: row;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.owner {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.editor {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.viewer {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+
+.admin {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.owner-name {
+    color: #2563eb;
+  font-weight: 600;
+  font-size: 14px;
 }

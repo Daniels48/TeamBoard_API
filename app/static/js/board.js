@@ -3,7 +3,7 @@ let draggedCard = null
 let pendingChanges = false
 const params = new URLSearchParams(window.location.search)
 boardId = params.get("id")
-const URL_FULL_BOARD = `/api/boards/${boardId}/full`
+const URL_FULL_BOARD = `/api/boards/${boardId}`
 let hasUnsavedChanges = false;
 
 async function loadBoard(){
@@ -36,7 +36,7 @@ function renderBoards(board) {
                         <button class="menu-btn"onclick="toggleColumnMenu(this)">⋮</button>
                         <div class="column-dropdown">
                             <button class="black perm-edit" onclick="editColumn('${board.public_id}','${column.public_id}')">✏️ Edit</button>
-                            <button class="danger perm-manage-members" onclick="deleteColumn('${column.public_id}')">🗑️ Delete</button>
+                            <button class="danger perm-manage-members" onclick="deleteColumn('${board.public_id}','${column.public_id}')">🗑️ Delete</button>
                         </div>
                       </div>
                   </div>
@@ -118,6 +118,12 @@ function renderBoards(board) {
 
         const header_col = document.querySelector(".h2-col");
         header_col.textContent = `Columns (${columns.length})`
+
+        const edit_board = document.querySelector(".edit-board");
+        const del_board = document.querySelector(".del-board");
+
+        edit_board.onclick = () => editBoard(public_id);
+        del_board.onclick = () => deleteBoard(public_id);
     }
     function applyRole(role){
     const class_manage = "perm-manage-members";
@@ -174,6 +180,9 @@ function toggleColumnMenu(button){
     button.nextElementSibling.classList.toggle("show");
 }
 
+function toggleBoardMenu(button) {
+    button.nextElementSibling.classList.toggle("show")
+}
 function toggleCardMenu(button){
     document.querySelectorAll(".card-dropdown.show")
         .forEach(menu => {
@@ -315,6 +324,31 @@ async function deleteColumn(boardId, columnId){
     }
     await loadBoard();
 }
+
+async function editBoard(boardId){
+    const title = prompt("New board title");
+    const description = prompt("New description board");
+
+    if (title === null || !title.trim() || description===null) {return;}
+    const res = await window.api.patch(`/api/boards/${boardId}`,{title: title.trim(), description: description.trim()});
+    if (!res?.ok) {
+        alert("Update failed");
+        return;
+    }
+    await loadBoard();
+}
+
+async function deleteBoard(boardId){
+    const confirmed = confirm("Delete board and all cards and column inside?");
+    if (!confirmed) { return;}
+    const res = await window.api.del(`/api/boards/${boardId}`);
+    if (!res?.ok) {
+        alert("Delete failed");
+        return;
+    }
+    window.location.href = 'http://localhost:8000/static/boards.html'
+}
+
 //-------------------------------------------------------------
 
 
@@ -464,11 +498,18 @@ document.addEventListener("click", e => {
             .querySelectorAll(".card-dropdown.show")
             .forEach(menu => menu.classList.remove("show"))
     }
-})
-document.addEventListener("click", (e) => {
+
     if (!e.target.closest(".column-menu")) {
         document.querySelectorAll(".column-dropdown.show")
             .forEach(menu => menu.classList.remove("show"));
     }
-});
+
+    if (!e.target.closest(".three-dot")) {
+        document.querySelectorAll(".board-dropdown.show")
+            .forEach(menu => menu.classList.remove("show"));
+    }
+
+
+})
+
 document.addEventListener("DOMContentLoaded",loadBoard)
