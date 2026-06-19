@@ -1,7 +1,7 @@
-from app.core.Exceptions.exceptions import AppException
-from app.db.models import Board, User
-from app.db.models.board_member import BoardRole, BoardMember
-from app.db.models.user import UserRole
+from app.core.exceptions.exceptions import AppException
+from app.infrastructure.db.models import Board, User
+from app.infrastructure.db.models import BoardMember
+from app.infrastructure.db.models.user import UserRole
 from app.permissions.enums import BoardPermission
 
 

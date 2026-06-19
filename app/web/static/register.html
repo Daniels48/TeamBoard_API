@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Register — TeamBoard</title>
+<link rel="stylesheet" href="/static/css/register.css">
+</head>
+
+<body>
+
+<div class="container">
+<h1 class="logo">🚀 TeamBoard</h1>
+
+<h2>Register</h2>
+
+<input id="username" placeholder="Username">
+<input id="email" type="email" placeholder="Email">
+
+<input id="password" type="password" placeholder="Password">
+
+<input id="first_name" placeholder="First name">
+
+<input id="last_name" placeholder="Last name">
+
+
+<button onclick="register()">Register</button>
+
+<a href="/login">Already have account?</a>
+
+<p id="error" style="color:red;"></p>
+
+</div>
+<script src="/static/js/api.js"></script>
+<script src="/static/js/register.js"></script>
+
+
+</body>
+</html>
