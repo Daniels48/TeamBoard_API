@@ -7,12 +7,12 @@ from app.infrastructure.db.models.user import UserRole
 
 class UserSearchResponse(BaseModel):
     username: str
-    
 
-class UserUpdate(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
 
+class UpdateProfileRequest(BaseModel):
+    email: EmailStr | None = None
+    first_name: str | None = None
+    last_name: str | None = None
 
 class UserRead(BaseModel):
     public_id: PyUUID
@@ -28,7 +28,3 @@ class UserRead(BaseModel):
     model_config = {
         "from_attributes": True
     }
-
-class RegisterResponse(BaseModel):
-    access_token: str
-    refresh_token: str

@@ -5,7 +5,7 @@ from app.modules.auth.sсhemas import SessionCacheData
 from app.core.dependencies import CurrentUser, DBSession
 from app.infrastructure.redis.service import SessionCache
 
-from app.modules.users.schema import UserRead, UserSearchResponse
+from app.modules.users.schema import UserRead, UserSearchResponse, UpdateProfileRequest
 from app.modules.users.service import UserService
 
 router_users = APIRouter(prefix="/users", tags=["users"])
@@ -26,3 +26,8 @@ async def search_users(q: str, db: DBSession, user: CurrentUser):
         return []
 
     return await UserService.search_users(db=db, query=q, user=user)
+
+@router_users.put("/profile", status_code=200)
+async def update_profile(data: UpdateProfileRequest, db: DBSession,current_user: CurrentUser):
+    user = await UserService.update_profile(db=db, user=current_user,data=data,)
+    return user

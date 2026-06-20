@@ -76,6 +76,8 @@ const api = {
 
     patch: (url, data) => apiFetch(url, jsonOptions("PATCH", data)),
 
+    put: (url, data) => apiFetch(url, jsonOptions("PUT", data)),
+
     del: (url) => apiFetch(url, {method: "DELETE"}),
 }
 

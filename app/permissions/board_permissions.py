@@ -6,8 +6,6 @@ from app.permissions.enums import BoardPermission
 
 
 class BoardRBAC:
-
-
     @staticmethod
     def get_member(board: Board, user: User) -> BoardMember | None:
         return next((m for m in board.members if m.user_id == user.id),None,)

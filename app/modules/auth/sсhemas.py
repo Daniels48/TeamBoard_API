@@ -1,7 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
-from pydantic import Field, BaseModel, EmailStr, field_serializer
+from pydantic import Field, BaseModel, EmailStr, field_serializer, ConfigDict
 from datetime import datetime
 
 from app.infrastructure.db.models.user import UserRole
@@ -18,6 +18,18 @@ class UserRegister(BaseModel):
     password: str = Field(min_length=6)
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+
+class UserSessionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    session_id: UUID
+    device_name: str | None
+    device_type: str | None
+    browser: str | None
+    os: str | None
+    ip_address: str | None
+    created_at: datetime
+    last_used_at: datetime | None
 
 
 class AccessTokenResponse(BaseModel):

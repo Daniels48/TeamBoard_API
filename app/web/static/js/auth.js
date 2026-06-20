@@ -49,15 +49,28 @@ function goBoards(){window.location.href = url_board}
 function goProfile(){window.location.href = url_profile}
 
 async function logout(){
-    try{
-        const res = await window.api.post(url_logout)
-    }catch(e){
-        console.error(e)
+    const button = document.querySelector(".logout");
+
+    try {
+        button.disabled = true;
+        button.textContent = "Logging out...";
+
+        await window.api.post(url_logout);
+
+        localStorage.removeItem("access_token");
+
+        window.clearToken()
+        window.currentUser = null
+        renderNavbar()
+
+        window.location.href = url_login;
+    } catch (error) {
+        console.error("Logout failed:", error);
+        button.disabled = false;
+        button.textContent = "Log out";
+        alert("Could not log out. Please try again.");
     }
-    window.clearToken()
-    window.currentUser = null
-    renderNavbar()
-    window.location.href = url_index;
+
 }
 
 

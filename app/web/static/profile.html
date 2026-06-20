@@ -15,7 +15,11 @@
         <h2>Your Profile</h2>
 
         <p><b>Username:</b> <span id="username"></span></p>
+        <p><b>First name:</b> <span id="f_name"></span></p>
+        <p><b>Last name:</b> <span id="l_name"></span></p>
         <p><b>Email:</b> <span id="email"></span></p>
+
+
 
         <p>
             <b>Status:</b>
@@ -31,10 +35,17 @@
 
         <p><b>Role:</b> <span id="role"></span></p>
         <p><b>Created:</b> <span id="created"></span></p>
+         <button onclick="updateProfile()">
+            Update profile
+        </button>
+        <hr>
+         <h3>Active sessions</h3>
+        <div id="sessions-list">Loading sessions...</div>
+        <button id="logout-all-btn" type="button" onclick="logoutAllSessions()">Log out from all devices</button>
 
     </div>
 
-<script src="/static/js/api.js"></script>
-<script src="/static/js/profile.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/profile.js"></script>
 </body>
 </html>

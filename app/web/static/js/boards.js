@@ -93,7 +93,6 @@ async function createBoard(){
 function renderRole(){
 
     if(!currentUser){
-        console.log("331ss")
         return
     }
 
@@ -118,17 +117,17 @@ function renderRole(){
 
 async function initBoards(){
 
-    try{
-        const res = await window.api.get("/api/users/check");
-        if(res && res.ok){
-            window.currentUser = await res.json()
-        }
-
-    }catch(e){
-        console.error("Auth init error:", e)
-    }
-
-    renderRole()
+//    try{
+//        const res = await window.api.get("/api/users/check");
+//        if(res && res.ok){
+//            window.currentUser = await res.json()
+//        }
+//
+//    }catch(e){
+//        console.error("Auth init error:", e)
+//    }
+//
+//    renderRole()
 
     await loadBoards()
 }

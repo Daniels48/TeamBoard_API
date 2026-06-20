@@ -7,6 +7,7 @@ from app.infrastructure.db.models import User, BoardMember
 from app.infrastructure.db.models.board_member import BoardRole
 from app.modules.boards.board_repository import BoardRepository
 from app.modules.members.member_rerositoriy import BoardMemberRepository
+from app.modules.users.service import UserPolicy
 from app.modules.users.user_repository import UserRepository
 from app.modules.members.schema import AddBoardMemberRequest, BoardMemberResponse, BoardMembersResponse, BoardOwnerResponse
 from app.permissions.board_permissions import BoardRBAC
@@ -16,8 +17,8 @@ from app.permissions.enums import BoardPermission
 class BoardMemberService:
 
     @staticmethod
-    async def add_member(db: AsyncSession, board_public_id: UUID, current_user: User,data: AddBoardMemberRequest) \
-            -> BoardMemberResponse:
+    async def add_member(db: AsyncSession, board_public_id: UUID, current_user: User,data: AddBoardMemberRequest)-> BoardMemberResponse:
+        UserPolicy.require_verified_email(user=current_user)
 
         board = await BoardRepository.get_by_public_id(db=db,public_id=board_public_id)
 
@@ -26,7 +27,7 @@ class BoardMemberService:
 
         BoardRBAC.check_permission(board=board, user=current_user, permission=BoardPermission.MANAGE_MEMBERS)
 
-        target_user = await UserRepository.get_by_username(db=db, username=data.username,)
+        target_user = await UserRepository.get_by_username(db=db, username=data.username)
 
         if not target_user:
             raise AppException("User not found", 404)
@@ -61,9 +62,9 @@ class BoardMemberService:
 
         return BoardMembersResponse(owner=owner, members=members)
 
-
     @staticmethod
     async def delete_member(db: AsyncSession, board_public_id: UUID, username: str, current_user: User):
+        UserPolicy.require_verified_email(user=current_user)
         board = await BoardRepository.get_by_public_id(db=db,public_id=board_public_id)
 
         if not board:
@@ -87,9 +88,9 @@ class BoardMemberService:
         await BoardMemberRepository.delete_member(db=db, user_id=target_user.id, board_id=board.id)
         await db.commit()
 
-
     @staticmethod
     async def update_role(db: AsyncSession, board_public_id: UUID, username: str, role: BoardRole, current_user: User) -> BoardMemberResponse:
+        UserPolicy.require_verified_email(user=current_user)
         board = await BoardRepository.get_by_public_id(db=db,public_id=board_public_id)
 
         if not board:

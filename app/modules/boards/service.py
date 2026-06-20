@@ -26,7 +26,7 @@ class BoardService:
     @staticmethod
     async def create_board(db: AsyncSession,user: User,data: BoardCreate) -> Board:
         board = Board(owner_id=user.id,title=data.title,description=data.description)
-        board = await BoardRepository.create(db=db,board=board,)
+        board = await BoardRepository.create(db=db,board=board)
 
         for position, title  in enumerate(DEFAULT_COLUMNS):
             column = BoardColumn(board_id=board.id,title=title,position=position)

@@ -4,6 +4,10 @@ services:
   db:
     image: postgres:15
     container_name: tb_db
+    command:
+      - postgres
+      - -c
+      - log_checkpoints=off
     environment:
       POSTGRES_DB: ${DB__NAME}
       POSTGRES_USER: ${DB__USER}

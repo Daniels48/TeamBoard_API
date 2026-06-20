@@ -3,6 +3,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.infrastructure.db.models.user import User
 
 class UserRepository:
+    @staticmethod
+    async def create(db: AsyncSession, user: User) -> User:
+        db.add(user)
+        await db.flush()
+        return user
+
+
+    @staticmethod
+    async def update(db: AsyncSession, user: User) -> User:
+        db.add(user)
+        await db.flush()
+        return user
 
     @staticmethod
     async def get_by_email(db: AsyncSession, email: str) -> User | None:
@@ -34,7 +46,6 @@ class UserRepository:
 
     @staticmethod
     async def get_by_login(db: AsyncSession, login: str) -> User | None:
-
         result = await db.execute(
             select(User).where(
                 or_(
@@ -45,13 +56,6 @@ class UserRepository:
         )
 
         return result.scalar_one_or_none()
-
-    @staticmethod
-    async def create(db: AsyncSession, user: User) -> User:
-        db.add(user)
-        await db.flush()
-        return user
-
 
     @staticmethod
     async def get_by_email_verification_token(db: AsyncSession,token: str) -> User | None:
