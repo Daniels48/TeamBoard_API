@@ -362,8 +362,10 @@ async function addMember(){
 
     const res = await window.api.post(`/api/members/${boardId}`,{username,role})
 
+    const data = await res.json();
+
     if(!res || !res.ok){
-        alert("Failed to add member")
+        alert(`ERROR - ${data.error}`)
         return
     }
 
@@ -405,8 +407,10 @@ async function removeMember(userId){
     const confirmed = confirm("Remove member?")
     if(!confirmed){return}
     const res = await window.api.del(`/api/members/${boardId}/${userId}`)
+    const data = await res.json();
+
     if(!res || !res.ok){
-        alert("Failed")
+        alert(`ERROR - ${data.error}`)
         return
     }
     await loadMembers()
@@ -415,9 +419,9 @@ async function removeMember(userId){
 async function changeRole(username, currentRole){
     const role = currentRole === "editor"? "viewer" : "editor"
     const res = await window.api.patch(`/api/members/${boardId}/${username}`,{ role })
-
+    const data = await res.json();
     if(!res || !res.ok){
-        alert("Failed")
+        alert(`ERROR - ${data.error}`)
         return
     }
 

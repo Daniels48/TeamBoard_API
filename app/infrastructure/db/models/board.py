@@ -20,8 +20,6 @@ class Board(Base):
         primary_key=True
     )
 
-
-
     public_id: Mapped[PyUUID] = mapped_column(
         PG_UUID(as_uuid=True),
         unique=True,
@@ -82,4 +80,3 @@ class Board(Base):
         back_populates="board",
         cascade="all, delete-orphan",
     )
-

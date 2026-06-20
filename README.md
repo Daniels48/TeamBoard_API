@@ -1,54 +1,119 @@
 # TeamBoard 📋
 
-TeamBoard — это веб-приложение для управления задачами и командной работы в стиле Kanban.
+TeamBoard — веб-приложение для управления задачами и командной работы в стиле Kanban.
 
-Система позволяет создавать доски, организовывать задачи по колонкам и отслеживать прогресс выполнения. Пользователи могут управлять своими проектами через удобный интерфейс с поддержкой перетаскивания карточек между колонками.
+## Возможности
 
-## Основные возможности
+- Регистрация и аутентификация пользователей
+- JWT-аутентификация (Access и Refresh токены)
+- Управление пользовательскими сессиями
+- Подтверждение электронной почты
+- Восстановление пароля
+- Создание и управление досками
+- Создание колонок и карточек задач
+- Перемещение карточек между колонками (Drag & Drop)
+- RBAC (Admin / Owner / Editor / Viewer)
+- Хранение активных сессий в Redis
+- Структурированное логирование
 
-* Регистрация и аутентификация пользователей
-* JWT-аутентификация с Access и Refresh токенами
-* Управление пользовательскими сессиями
-* Создание и управление досками
-* Создание колонок и карточек задач
-* Перемещение карточек между колонками (Drag & Drop)
-* Хранение активных сессий в Redis
-* Подтверждение электронной почты
-* Восстановление пароля через email
-* Структурированное логирование запросов и действий пользователей
+## Технологии
 
-## Технологический стек
+- FastAPI
+- PostgreSQL
+- SQLAlchemy
+- Alembic
+- Redis
+- JWT
+- Docker
+- HTML / CSS / JavaScript
 
-### Backend ⚙️
-- **Python 3.12**
-- **FastAPI** (async)
-- **SQLAlchemy 2.0** (async)
-- **PostgreSQL**
-- **Redis**
-- **Alembic**
-- **Pydantic v2**
+## 🚀 Запуск проекта
 
-### Frontend 🎨
-- **HTML5**
-- **CSS3**
-- **Vanilla JavaScript**
+### 1️⃣ Клонировать репозиторий
 
-### Безопасность 🔐
-- **JWT Authentication**
-- **Refresh Tokens**
-- **Session Management**
-- **Email Verification**
-- **Password Reset**
+```bash
+git clone https://github.com/Daniels48/TeamBoard_API.git
+```
+```bash
+cd TeamBoard_API
+```
 
-### Инфраструктура 🐳
-- **Docker**
-- **Docker Compose**
 
-### Наблюдаемость 📊
-- **Structured JSON Logging**
-- **Request ID Tracking**
-- **User Activity Tracking**
+### 2️⃣ Создать файл `.env`
 
-## Назначение проекта
+Скопируйте `.env.example` и переименуйте его в `.env`:
 
-Проект разработан в качестве pet-проекта для изучения современных подходов к разработке backend-приложений на FastAPI, включая аутентификацию, управление сессиями, работу с Redis, отправку email-сообщений и организацию многослойной архитектуры приложения.
+```bash
+cp .env.example .env
+```
+
+После этого при необходимости измените значения переменных в файле `.env`.
+
+### 3️⃣ Запустить контейнеры
+
+**Linux / macOS:**
+
+```bash
+make up
+```
+
+**Windows:**
+```bash
+docker compose up -d --build
+```
+
+### 4️⃣ Применить миграции
+
+**Linux / macOS:**
+
+```bash
+make upgrade
+```
+
+**Windows :**
+
+```bash
+docker compose exec api alembic -c app/infrastructure/db/alembic.ini upgrade head
+```
+
+### 5️⃣ Загрузить тестовые данные
+
+**Linux / macOS:**
+
+```bash
+make seed
+```
+
+**Windows:**
+
+```bash
+docker compose exec api python -m scripts.seed
+```
+
+### 6️⃣ Открыть приложение
+
+```text
+http://localhost:8000
+```
+
+### 7️⃣ API документация
+
+```text
+http://localhost:8000/docs
+```
+
+## Тестовые пользователи
+
+Пароль для всех пользователей:
+
+```text
+password123
+```
+
+| Email | Роль | Статус |
+|---|---|---|
+| `admin@example.com` | Admin | Подтверждён |
+| `owner@example.com` | Владелец досок | Подтверждён |
+| `editor@example.com` | Editor | Подтверждён |
+| `viewer@example.com` | Viewer | Подтверждён |
+| `unverified@example.com` | User | Не подтверждён |

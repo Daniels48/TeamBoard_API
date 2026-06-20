@@ -13,7 +13,6 @@ def now_dt():
     return datetime.now(timezone.utc)
 
 
-
 class BoardColumn(Base):
     __tablename__ = "board_columns"
 

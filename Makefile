@@ -1,8 +1,11 @@
 CONTAINER=api
-ALEMBIC = docker compose exec $(CONTAINER) alembic -c app/db/alembic.ini
+ALEMBIC = docker compose exec $(CONTAINER) alembic -c app/infrastructure/db/alembic.ini
 
 revision:
 	$(ALEMBIC) revision --autogenerate -m "$(m)"
+
+seed:
+	docker compose exec $(CONTAINER) python -m scripts.seed
 
 upgrade:
 	$(ALEMBIC) upgrade head

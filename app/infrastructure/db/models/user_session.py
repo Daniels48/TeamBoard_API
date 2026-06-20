@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from uuid6 import uuid7
 from uuid import UUID
 from datetime import datetime, timezone
@@ -9,9 +7,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, DateTime, ForeignKey, Index
 
 from app.infrastructure.db.base import Base
-
-if TYPE_CHECKING:
-    from app.infrastructure.db.models import User
 
 
 def now_dt():

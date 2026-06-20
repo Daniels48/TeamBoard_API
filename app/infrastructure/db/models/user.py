@@ -8,20 +8,11 @@ from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Boolean, DateTime, Enum as SqlEnum
 
-
 from app.infrastructure.db.base import Base
-
-from typing import TYPE_CHECKING
-
-
-
-if TYPE_CHECKING:
-    from app.infrastructure.db.models import UserSession
 
 
 def now_dt():
     return datetime.now(timezone.utc)
-
 
 
 class UserRole(str, Enum):
