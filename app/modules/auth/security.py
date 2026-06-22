@@ -1,24 +1,23 @@
-import logging
 import hashlib
 import hmac
+import logging
 import secrets
-
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-logger = logging.getLogger("teamboard")
-
+from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
-from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import ValidationError
 
-from app.modules.auth.sсhemas import AccessTokenPayload
-from app.core.exceptions.exceptions import AppException, ErrorCode
 from app.core.config import settings
+from app.core.exceptions.exceptions import AppException, ErrorCode
+from app.modules.auth.sсhemas import AccessTokenPayload
+
+logger = logging.getLogger("teamboard")
 
 
 class PasswordService:
-    pwd_context = CryptContext(schemes=["argon2"],deprecated="auto")
+    pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
     @classmethod
     def hash_password(cls, password: str) -> str:
@@ -60,19 +59,13 @@ class TokenService:
             return AccessTokenPayload.model_validate(payload)
 
         except ExpiredSignatureError:
-            logger.info(
-                "Token expired",
-                extra={"event": "auth_failed"}
-            )
-            raise AppException("Token expired",401, ErrorCode.TOKEN_EXPIRED)
+            logger.info("Token expired", extra={"event": "auth_failed"})
+            raise AppException("Token expired", 401, ErrorCode.TOKEN_EXPIRED)
 
         except (JWTError, ValidationError):
-            logger.warning(
-                "Invalid token",
-                extra={"event": "auth_failed"}
-            )
+            logger.warning("Invalid token", extra={"event": "auth_failed"})
 
-            raise AppException("Invalid token",401, ErrorCode.INVALID_TOKEN)
+            raise AppException("Invalid token", 401, ErrorCode.INVALID_TOKEN)
 
     @classmethod
     def hash_confirmation_code(cls, code: str) -> str:

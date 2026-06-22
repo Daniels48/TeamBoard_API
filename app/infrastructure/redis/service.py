@@ -2,12 +2,10 @@ import redis.asyncio as redis
 
 from app.modules.auth.sсhemas import SessionCacheData
 
-
-redis_client = redis.Redis(host="redis",port=6379,decode_responses=True)
+redis_client = redis.Redis(host="redis", port=6379, decode_responses=True)
 
 
 class SessionCache:
-
     PREFIX = "session"
 
     @classmethod
@@ -15,11 +13,7 @@ class SessionCache:
 
         key = f"{cls.PREFIX}:{session_id}"
 
-        await redis_client.set(
-            name=key,
-            value=data.model_dump_json(),
-            ex=ttl
-        )
+        await redis_client.set(name=key, value=data.model_dump_json(), ex=ttl)
 
     @classmethod
     async def get(cls, session_id: str) -> str | None:

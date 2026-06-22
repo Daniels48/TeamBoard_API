@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 from datetime import datetime, timezone
 from enum import Enum
-from uuid6 import uuid7
 from uuid import UUID as PyUUID
 
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import Boolean, DateTime, String, UniqueConstraint
+from sqlalchemy import Enum as SqlEnum
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Boolean, DateTime, Enum as SqlEnum
+from uuid6 import uuid7
 
 from app.infrastructure.db.base import Base
 
@@ -26,11 +28,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     public_id: Mapped[PyUUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        unique=True,
-        nullable=False,
-        default=uuid7,
-        index=True
+        PG_UUID(as_uuid=True), unique=True, nullable=False, default=uuid7, index=True
     )
 
     username: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
@@ -48,39 +46,27 @@ class User(Base):
 
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_dt, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),default=now_dt, onupdate=now_dt, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=now_dt, onupdate=now_dt, nullable=False
+    )
     password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True),nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     sessions: Mapped[list["UserSession"]] = relationship(
-        "UserSession",
-        back_populates="user",
-        cascade="all, delete-orphan"
+        "UserSession", back_populates="user", cascade="all, delete-orphan"
     )
 
-    boards: Mapped[list["Board"]] = relationship(
-        "Board",
-        back_populates="owner",
-        cascade="all, delete-orphan"
-    )
+    boards: Mapped[list["Board"]] = relationship("Board", back_populates="owner", cascade="all, delete-orphan")
 
-    email_verification_token: Mapped[str | None] = mapped_column(
-        String(255),
-        nullable=True,
-        index=True
-    )
+    email_verification_token: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
 
     email_verification_token_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
 
-    password_reset_token: Mapped[str | None] = mapped_column(
-        String(255),
-        nullable=True,
-        index=True
-    )
+    password_reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
 
     password_reset_token_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
@@ -105,15 +91,15 @@ class User(Base):
     @property
     def email_verification_token_valid(self) -> bool:
         return (
-                self.email_verification_token is not None
-                and self.email_verification_token_expires_at is not None
-                and self.email_verification_token_expires_at > now_dt()
+            self.email_verification_token is not None
+            and self.email_verification_token_expires_at is not None
+            and self.email_verification_token_expires_at > now_dt()
         )
 
     @property
     def password_reset_token_valid(self) -> bool:
         return (
-                self.password_reset_token is not None
-                and self.password_reset_token_expires_at is not None
-                and self.password_reset_token_expires_at > now_dt()
+            self.password_reset_token is not None
+            and self.password_reset_token_expires_at is not None
+            and self.password_reset_token_expires_at > now_dt()
         )

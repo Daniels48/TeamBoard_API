@@ -6,18 +6,13 @@ from app.core.config import settings
 from app.core.observability.logging_filter import ContextFilter
 from app.core.observability.logging_formatter import CustomJsonFormatter
 
-
 LOG_LEVEL = settings.logging.log_level.upper()
 
 
 LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
-    "filters": {
-        "context_filter": {
-            "()": ContextFilter
-        }
-    },
+    "filters": {"context_filter": {"()": ContextFilter}},
     "formatters": {
         "json": {
             "()": CustomJsonFormatter,
@@ -35,7 +30,6 @@ LOGGING_CONFIG = {
         "handlers": ["console"],
     },
 }
-
 
 
 def setup_logging():

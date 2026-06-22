@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 from uuid import UUID
+
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import selectinload
 
 from app.infrastructure.db.models.user_session import UserSession
 
@@ -12,7 +13,6 @@ def now_dt():
 
 
 class UserSessionRepository:
-
     @staticmethod
     async def create(db: AsyncSession, session: UserSession) -> UserSession:
         db.add(session)
@@ -20,25 +20,21 @@ class UserSessionRepository:
         return session
 
     @staticmethod
-    async def get_by_session_id(db: AsyncSession,session_id: UUID,) -> UserSession | None:
+    async def get_by_session_id(db: AsyncSession, session_id: UUID) -> UserSession | None:
         result = await db.execute(
-            select(UserSession).where(UserSession.session_id == session_id)
+            select(UserSession).options(selectinload(UserSession.user)).where(UserSession.session_id == session_id)
         )
 
         return result.scalar_one_or_none()
 
     @staticmethod
     async def get_by_refresh_hash(db: AsyncSession, refresh_hash: str) -> UserSession | None:
-        result = await db.execute(
-            select(UserSession).where(
-                UserSession.refresh_token_hash == refresh_hash
-            )
-        )
+        result = await db.execute(select(UserSession).where(UserSession.refresh_token_hash == refresh_hash))
 
         return result.scalar_one_or_none()
 
     @staticmethod
-    async def revoke_all_sessions(db: AsyncSession,user_id: int) -> list[UUID]:
+    async def revoke_all_sessions(db: AsyncSession, user_id: int) -> list[UUID]:
         result = await db.execute(
             select(UserSession.session_id).where(
                 UserSession.user_id == user_id,
@@ -51,11 +47,7 @@ class UserSessionRepository:
         if not session_ids:
             return []
 
-        stmt = (
-            update(UserSession)
-            .where(UserSession.session_id.in_(session_ids))
-            .values(revoked_at=now_dt())
-        )
+        stmt = update(UserSession).where(UserSession.session_id.in_(session_ids)).values(revoked_at=now_dt())
 
         await db.execute(stmt)
 
@@ -75,26 +67,12 @@ class UserSessionRepository:
 
         return list(result.scalars().all())
 
-
     @staticmethod
-    async def revoke_session(
-        db: AsyncSession,
-        session_id: UUID
-    ) -> None:
+    async def revoke_session(db: AsyncSession, session_id: UUID) -> None:
         await db.execute(
-            update(UserSession)
-            .where(UserSession.session_id == session_id)
-            .values(
-                is_revoked=True,
-                revoked_at=now_dt()
-            )
+            update(UserSession).where(UserSession.session_id == session_id).values(is_revoked=True, revoked_at=now_dt())
         )
 
     @staticmethod
-    async def update_last_used(db: AsyncSession,session_id: UUID) -> None:
-        await db.execute(
-            update(UserSession)
-            .where(UserSession.session_id == session_id)
-            .values(last_used_at=now_dt())
-        )
-
+    async def update_last_used(db: AsyncSession, session_id: UUID) -> None:
+        await db.execute(update(UserSession).where(UserSession.session_id == session_id).values(last_used_at=now_dt()))

@@ -1,28 +1,26 @@
 import hmac
 import json
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from secrets import randbelow
 from uuid import UUID
 
 from cryptography import fernet
 from cryptography.fernet import InvalidToken
-
+from redis.exceptions import RedisError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions.exceptions import AppException, ErrorCode
 from app.core.config import settings
-from app.modules.auth.sсhemas import UserRegister, UserLogin
-from app.modules.auth.utils import create_session_data
-from app.modules.auth.security import PasswordService, TokenService
-from app.modules.auth.session_repository import UserSessionRepository
-from app.modules.users.service import UserPolicy
-from app.modules.users.user_repository import UserRepository
+from app.core.exceptions.exceptions import AppException, ErrorCode
 from app.infrastructure.db.models import User, UserSession
 from app.infrastructure.redis.service import SessionCache
-from redis.exceptions import RedisError
-
+from app.modules.auth.security import PasswordService, TokenService
+from app.modules.auth.session_repository import UserSessionRepository
+from app.modules.auth.sсhemas import UserLogin, UserRegister
+from app.modules.auth.utils import create_session_data
+from app.modules.users.service import UserPolicy
+from app.modules.users.user_repository import UserRepository
 
 logger = logging.getLogger("teamboard")
 
@@ -33,7 +31,7 @@ def now_dt():
 
 class AuthService:
     @staticmethod
-    async def login(db: AsyncSession, data: UserLogin, device_info: dict)-> dict[str, str]:
+    async def login(db: AsyncSession, data: UserLogin, device_info: dict) -> dict[str, str]:
         now = now_dt()
         user = await UserRepository.get_by_login(db, data.login)
 
@@ -61,7 +59,7 @@ class AuthService:
         return tokens
 
     @staticmethod
-    async def register(db: AsyncSession, data: UserRegister, device_info: dict)-> dict[str, str]:
+    async def register(db: AsyncSession, data: UserRegister, device_info: dict) -> dict[str, str]:
         try:
             async with db.begin():
                 hashed_password = PasswordService.hash_password(data.password)
@@ -74,23 +72,24 @@ class AuthService:
 
             return tokens
 
-
         except IntegrityError as e:
             error = str(e.orig).lower()
             if "uq_users_email" in error:
-                raise AppException(message="Email already registered",status_code=400,code=ErrorCode.EMAIL_ALREADY_EXISTS)
+                raise AppException(
+                    message="Email already registered", status_code=400, code=ErrorCode.EMAIL_ALREADY_EXISTS
+                )
 
             if "uq_users_username" in error:
-                raise AppException(message="Username already taken",status_code=400,code=ErrorCode.USERNAME_TAKEN)
+                raise AppException(message="Username already taken", status_code=400, code=ErrorCode.USERNAME_TAKEN)
 
             logger.exception("Unknown registration integrity error", extra={"event": "registration_integrity_error"})
-            raise AppException(message="Registration error",  status_code=400 )
+            raise AppException(message="Registration error", status_code=400)
 
         except AppException:
             raise
 
         except Exception:
-            logger.exception("Unexpected registration error",extra={"event": "registration_failed"})
+            logger.exception("Unexpected registration error", extra={"event": "registration_failed"})
             raise
 
     @staticmethod
@@ -105,7 +104,7 @@ class AuthService:
         user = await UserRepository.get_by_id(db, session.user_id)
 
         if not user or not user.is_active:
-            raise AppException("Unauthorized",401)
+            raise AppException("Unauthorized", 401)
 
         try:
             session.last_used_at = now
@@ -175,7 +174,7 @@ class AuthService:
         await AuthService._try_invalidate_session_cache(session.session_id)
 
     @staticmethod
-    async def create_email_verification_code(db: AsyncSession,user: User) -> str:
+    async def create_email_verification_code(db: AsyncSession, user: User) -> str:
         if user.is_verified:
             raise AppException("Email already verified", 400)
 
@@ -184,12 +183,12 @@ class AuthService:
         user.email_verification_token = TokenService.hash_confirmation_code(code)
         user.email_verification_token_expires_at = now_dt() + timedelta(hours=24)
 
-        await AuthService._commit(db,event="email_verification_code_created")
+        await AuthService._commit(db, event="email_verification_code_created")
 
         return code
 
     @staticmethod
-    async def verify_email(db: AsyncSession,user: User,code: str) -> dict[str, str]:
+    async def verify_email(db: AsyncSession, user: User, code: str) -> dict[str, str]:
         if user.is_verified:
             raise AppException("Email already verified", 400)
 
@@ -208,7 +207,7 @@ class AuthService:
         return {"message": "Email verified successfully"}
 
     @staticmethod
-    async def create_password_reset_code(db: AsyncSession,user: User) -> str:
+    async def create_password_reset_code(db: AsyncSession, user: User) -> str:
         UserPolicy.require_verified_email(user=user)
         code = AuthService._generate_confirmation_code()
         user.password_reset_token = TokenService.hash_confirmation_code(code)
@@ -223,10 +222,10 @@ class AuthService:
         user = await UserRepository.get_by_email(db=db, email=email)
 
         if not user:
-            raise AppException("Invalid password reset code",400)
+            raise AppException("Invalid password reset code", 400)
 
         if not user.password_reset_token_valid:
-            raise AppException("Invalid password reset code",400)
+            raise AppException("Invalid password reset code", 400)
 
         if not hmac.compare_digest(user.password_reset_token, TokenService.hash_confirmation_code(code)):
             raise AppException("Invalid password reset code", 400)
@@ -253,10 +252,10 @@ class AuthService:
 
     @staticmethod
     async def _create_session_and_tokens(
-            db: AsyncSession,
-            user: User,
-            device_info: dict,
-            now: datetime,
+        db: AsyncSession,
+        user: User,
+        device_info: dict,
+        now: datetime,
     ) -> tuple[dict[str, str], UserSession]:
 
         new_refresh_token = TokenService.generate_refresh_token()
@@ -291,10 +290,7 @@ class AuthService:
             )
 
         except RedisError:
-            logger.exception(
-                "Failed to cache session after commit",
-                extra={"event": "session_cache_failed"}
-            )
+            logger.exception("Failed to cache session after commit", extra={"event": "session_cache_failed"})
 
     @staticmethod
     async def _try_invalidate_session_cache(session_id: UUID) -> None:
@@ -303,7 +299,10 @@ class AuthService:
         except RedisError:
             logger.exception(
                 "Failed to remove logged out session from cache",
-                extra={"event": "session_cache_delete_failed", "session_id": str(session_id), },
+                extra={
+                    "event": "session_cache_delete_failed",
+                    "session_id": str(session_id),
+                },
             )
 
     @staticmethod
@@ -318,7 +317,6 @@ class AuthService:
     @staticmethod
     def _generate_confirmation_code():
         return str(randbelow(900000) + 100000)
-
 
 
 class PasswordResetService:

@@ -1,0 +1,19 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [
+    ".venv",
+    "venv",
+    "app/infrastructure/db/migrations",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"app/infrastructure/db/models/*.py" = ["F821"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

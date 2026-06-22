@@ -30,9 +30,7 @@ class CardMove(BaseModel):
 
 
 class CardResponse(BaseModel):
-    model_config = ConfigDict(
-        from_attributes=True
-    )
+    model_config = ConfigDict(from_attributes=True)
 
     public_id: UUID
 

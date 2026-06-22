@@ -102,6 +102,15 @@ http://localhost:8000
 http://localhost:8000/docs
 ```
 
+
+## 🧪 Тесты
+
+Запустить все backend-тесты:
+
+```bash
+docker compose exec api pytest -v
+```
+
 ## Тестовые пользователи
 
 Пароль для всех пользователей:

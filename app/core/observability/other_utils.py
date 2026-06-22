@@ -1,7 +1,7 @@
-from fastapi import Request
-from user_agents import parse
 import subprocess
 
+from fastapi import Request
+from user_agents import parse
 
 SENSITIVE_QUERY = {"token", "password", "secret"}
 
@@ -15,10 +15,7 @@ def get_protocol(request: Request) -> str:
 
 
 def sanitize_query(params: dict):
-    return {
-        k: "***" if k in SENSITIVE_QUERY else v
-        for k, v in params.items()
-    }
+    return {k: "***" if k in SENSITIVE_QUERY else v for k, v in params.items()}
 
 
 def parse_user_agent(user_agent: str | None):

@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
+
 from pythonjsonlogger import json
 
 
 class CustomJsonFormatter(json.JsonFormatter):
-
     def add_fields(self, log_record, record, message_dict):
         super().add_fields(log_record, record, message_dict)
 
@@ -29,15 +29,9 @@ class CustomJsonFormatter(json.JsonFormatter):
         }
         log_record["log"] = log
 
-
-        service = {
-            "name": getattr(record, "service", None),
-            "version": getattr(record, "version", None)
-        }
+        service = {"name": getattr(record, "service", None), "version": getattr(record, "version", None)}
 
         log_record["service"] = service
-
-
 
         trace = {
             "request_id": getattr(record, "request_id", None),
@@ -61,7 +55,6 @@ class CustomJsonFormatter(json.JsonFormatter):
         if any(network.values()):
             log_record["network"] = network
 
-
         http = {
             "method": getattr(record, "method", None),
             "status_code": getattr(record, "status_code", None),
@@ -73,12 +66,9 @@ class CustomJsonFormatter(json.JsonFormatter):
         if any(http.values()):
             log_record["http"] = http
 
-
         if exc_info:
-
             log_record["error"] = {
                 "type": exc_info[0].__name__,
                 "message": str(exc_info[1]),
                 "stacktrace": self.formatException(exc_info),
             }
-

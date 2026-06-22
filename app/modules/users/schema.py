@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr
 from uuid import UUID as PyUUID
+
+from pydantic import BaseModel, EmailStr
+
 from app.infrastructure.db.models.user import UserRole
 
 
@@ -14,6 +16,7 @@ class UpdateProfileRequest(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
 
+
 class UserRead(BaseModel):
     public_id: PyUUID
     username: str
@@ -25,6 +28,4 @@ class UserRead(BaseModel):
     is_active: bool
     created_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

@@ -30,6 +30,7 @@ class ErrorCode(str, Enum):
     BAD_REQUEST = "BAD_REQUEST"
     CONFLICT = "CONFLICT"
 
+
 class AppException(Exception):
     def __init__(
         self,

@@ -1,13 +1,9 @@
-import secrets
 from fastapi import Request
 from user_agents import parse
 
-from app.modules.auth.sсhemas import SessionCacheData
 from app.infrastructure.db.models import UserSession
+from app.modules.auth.sсhemas import SessionCacheData
 
-
-def generate_refresh_token() -> str:
-    return secrets.token_urlsafe(64)
 
 def get_client_ip(request: Request) -> str | None:
     forwarded = request.headers.get("x-forwarded-for")

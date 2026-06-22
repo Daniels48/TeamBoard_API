@@ -1,10 +1,12 @@
-from uuid6 import uuid7
-from uuid import UUID
-from datetime import datetime, timezone
+from __future__ import annotations
 
+from datetime import datetime, timezone
+from uuid import UUID
+
+from sqlalchemy import DateTime, ForeignKey, Index, String
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, DateTime, ForeignKey, Index
+from uuid6 import uuid7
 
 from app.infrastructure.db.base import Base
 
@@ -23,11 +25,7 @@ class UserSession(Base):
     refresh_token_hash: Mapped[str] = mapped_column(String(64), nullable=False)
 
     session_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        unique=True,
-        nullable=False,
-        default=uuid7,
-        index=True
+        PG_UUID(as_uuid=True), unique=True, nullable=False, default=uuid7, index=True
     )
 
     device_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -42,11 +40,6 @@ class UserSession(Base):
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    user: Mapped["User"] = relationship(
-        "User",
-        back_populates="sessions"
-    )
+    user: Mapped["User"] = relationship("User", back_populates="sessions")
 
-    __table_args__ = (
-        Index("ix_user_sessions_user_id_revoked_at", "user_id", "revoked_at"),
-    )
+    __table_args__ = (Index("ix_user_sessions_user_id_revoked_at", "user_id", "revoked_at"),)

@@ -1,9 +1,15 @@
-import time
 import logging
+import time
+
 from fastapi import Request
 from starlette.responses import Response
-from app.core.observability.context import set_context_after_request, set_http_context, clear_request_context, \
-    request_ctx, user_id_ctx
+
+from app.core.observability.context import (
+    clear_request_context,
+    request_ctx,
+    set_context_after_request,
+    set_http_context,
+)
 
 logger = logging.getLogger("teamboard")
 
@@ -53,4 +59,3 @@ async def logging_middleware(request: Request, call_next):
             response.headers["X-Request-ID"] = request_id
 
         clear_request_context()
-

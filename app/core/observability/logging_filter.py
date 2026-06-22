@@ -1,8 +1,18 @@
 import logging
+
 from app.core.config import settings
 from app.core.observability.context import (
-    request_id_ctx, status_code_ctx, duration_ctx, method_ctx, user_id_ctx,
-    path_ctx, client_ip_ctx, user_agent_ctx, client_port_ctx, protocol_ctx, query_params_ctx, request_ctx
+    client_ip_ctx,
+    client_port_ctx,
+    duration_ctx,
+    method_ctx,
+    path_ctx,
+    protocol_ctx,
+    query_params_ctx,
+    request_ctx,
+    request_id_ctx,
+    status_code_ctx,
+    user_agent_ctx,
 )
 
 
@@ -22,8 +32,5 @@ class ContextFilter(logging.Filter):
         record.query_params = query_params_ctx.get()
         request = request_ctx.get()
 
-        record.user_id = (
-            getattr(request.state, "user_id", None)
-            if request else None
-        )
+        record.user_id = getattr(request.state, "user_id", None) if request else None
         return True

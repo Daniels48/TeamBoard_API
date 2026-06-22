@@ -1,8 +1,8 @@
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import Field, BaseModel, EmailStr, field_serializer, ConfigDict
-from datetime import datetime
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer
 
 from app.infrastructure.db.models.user import UserRole
 
@@ -18,6 +18,7 @@ class UserRegister(BaseModel):
     password: str = Field(min_length=6)
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+
 
 class UserSessionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -86,5 +87,3 @@ class AccessTokenPayload(BaseModel):
     @property
     def sid_str(self) -> str:
         return str(self.sid)
-
-

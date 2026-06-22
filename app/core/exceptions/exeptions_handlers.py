@@ -1,6 +1,8 @@
 import logging
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
+
 from app.core.exceptions.exceptions import AppException, ErrorCode
 
 logger = logging.getLogger("teamboard")

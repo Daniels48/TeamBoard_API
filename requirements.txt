@@ -14,3 +14,7 @@ redis[async]
 pydantic[email]
 user-agents
 fastapi-mail
+pytest
+pytest-asyncio
+httpx
+ruff

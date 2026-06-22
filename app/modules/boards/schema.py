@@ -1,19 +1,19 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
-from app.modules.columns.schema import BoardColumnResponse
 from app.modules.cards.schema import CardResponse
+from app.modules.columns.schema import BoardColumnResponse
 
 
 class BoardCreate(BaseModel):
-    title: str = Field(min_length=1,max_length=255)
+    title: str = Field(min_length=1, max_length=255)
     description: str | None = None
 
 
 class BoardUpdate(BaseModel):
-    title: str | None = Field( default=None, max_length=255)
+    title: str | None = Field(default=None, max_length=255)
     description: str | None = None
 
 
@@ -30,9 +30,8 @@ class BoardResponse(BaseModel):
     columns_count: int
     cards_count: int
 
-    model_config = ConfigDict(
-        from_attributes=True
-    )
+    model_config = ConfigDict(from_attributes=True)
+
 
 class BoardBaseResponse(BaseModel):
     public_id: UUID
@@ -41,9 +40,8 @@ class BoardBaseResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    model_config = ConfigDict(
-        from_attributes=True
-    )
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ColumnFullResponse(BoardColumnResponse):
     cards: list[CardResponse]

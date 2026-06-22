@@ -1,9 +1,10 @@
-from datetime import datetime, timezone
+from __future__ import annotations
 
+from datetime import datetime, timezone
 from enum import StrEnum
 
+from sqlalchemy import DateTime, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import DateTime, ForeignKey, Enum
 
 from app.infrastructure.db.base import Base
 
@@ -12,11 +13,9 @@ def now_dt():
     return datetime.now(timezone.utc)
 
 
-
 class BoardRole(StrEnum):
     VIEWER = "viewer"
     EDITOR = "editor"
-
 
 
 class BoardMember(Base):

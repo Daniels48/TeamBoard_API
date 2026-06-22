@@ -1,8 +1,8 @@
 import time
 import uuid
 from contextvars import ContextVar
-from app.core.observability.other_utils import get_protocol, parse_user_agent, sanitize_query
 
+from app.core.observability.other_utils import get_protocol, parse_user_agent, sanitize_query
 
 request_id_ctx = ContextVar("request_id", default=None)
 user_id_ctx = ContextVar("user_id", default=None)
@@ -19,7 +19,7 @@ client_port_ctx = ContextVar("client_port", default=None)
 protocol_ctx = ContextVar("protocol", default=None)
 query_params_ctx = ContextVar("query_params", default=None)
 
-request_ctx = ContextVar("request",default=None)
+request_ctx = ContextVar("request", default=None)
 
 
 def generate_request_id(incoming_id: str | None) -> str:
@@ -34,11 +34,9 @@ def set_http_context(request):
     request_id = generate_request_id(request.headers.get("X-Request-ID"))
     request_id_ctx.set(request_id)
 
-
     protocol_ctx.set(get_protocol(request))
     method_ctx.set(request.method)
     path_ctx.set(request.url.path)
-
 
     client_ip_ctx.set(request.client.host if request.client else None)
     user_agent_data = parse_user_agent(request.headers.get("user-agent"))

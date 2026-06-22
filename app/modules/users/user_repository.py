@@ -1,6 +1,8 @@
-from sqlalchemy import select, or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.infrastructure.db.models.user import User
+
 
 class UserRepository:
     @staticmethod
@@ -8,7 +10,6 @@ class UserRepository:
         db.add(user)
         await db.flush()
         return user
-
 
     @staticmethod
     async def update(db: AsyncSession, user: User) -> User:
@@ -18,50 +19,33 @@ class UserRepository:
 
     @staticmethod
     async def get_by_email(db: AsyncSession, email: str) -> User | None:
-        result = await db.execute(
-            select(User).where(User.email == email)
-        )
+        result = await db.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()
 
     @staticmethod
     async def get_by_public_id(db: AsyncSession, public_id: str) -> User | None:
-        result = await db.execute(
-            select(User).where(User.public_id == public_id)
-        )
+        result = await db.execute(select(User).where(User.public_id == public_id))
         return result.scalar_one_or_none()
 
     @staticmethod
     async def get_by_username(db: AsyncSession, username: str) -> User | None:
-        result = await db.execute(
-            select(User).where(User.username == username)
-        )
+        result = await db.execute(select(User).where(User.username == username))
         return result.scalar_one_or_none()
 
     @staticmethod
     async def get_by_id(db: AsyncSession, user_id: int) -> User | None:
-        result = await db.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await db.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
 
     @staticmethod
     async def get_by_login(db: AsyncSession, login: str) -> User | None:
-        result = await db.execute(
-            select(User).where(
-                or_(
-                    User.email == login,
-                    User.username == login
-                )
-            )
-        )
+        result = await db.execute(select(User).where(or_(User.email == login, User.username == login)))
 
         return result.scalar_one_or_none()
 
     @staticmethod
-    async def get_by_email_verification_token(db: AsyncSession,token: str) -> User | None:
-        stmt = select(User).where(
-            User.email_verification_token == token
-        )
+    async def get_by_email_verification_token(db: AsyncSession, token: str) -> User | None:
+        stmt = select(User).where(User.email_verification_token == token)
 
         result = await db.execute(stmt)
 

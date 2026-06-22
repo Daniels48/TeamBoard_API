@@ -1,6 +1,7 @@
 from pathlib import Path
-from pydantic_settings import BaseSettings
+
 from pydantic import BaseModel
+from pydantic_settings import BaseSettings
 
 from app.core.observability.other_utils import get_git_version
 
@@ -51,29 +52,23 @@ class Settings(BaseSettings):
     logging: LoggingSettings
     email: EmailSettings
 
+    test_database_url: str
+
     version: str = get_git_version()
 
-    model_config = {
-        "env_file": BASE_DIR / ".env",
-        "env_file_encoding": "utf-8",
-        "env_nested_delimiter": "__"
-    }
+    model_config = {"env_file": BASE_DIR / ".env", "env_file_encoding": "utf-8", "env_nested_delimiter": "__"}
 
     @property
     def async_db_url(self) -> str:
-        return (
-            f"postgresql+asyncpg://{self.db.user}:"
-            f"{self.db.password}@{self.db.host}:"
-            f"{self.db.port}/{self.db.name}"
-        )
+        return f"postgresql+asyncpg://{self.db.user}:{self.db.password}@{self.db.host}:{self.db.port}/{self.db.name}"
 
     @property
     def sync_db_url(self) -> str:
-        return (
-            f"postgresql://{self.db.user}:"
-            f"{self.db.password}@{self.db.host}:"
-            f"{self.db.port}/{self.db.name}"
-        )
+        return f"postgresql://{self.db.user}:{self.db.password}@{self.db.host}:{self.db.port}/{self.db.name}"
+
+    @property
+    def test_async_db_url(self) -> str:
+        return self.test_database_url
 
 
 settings = Settings()

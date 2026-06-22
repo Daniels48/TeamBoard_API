@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 
 from app.infrastructure.db.database import AsyncSessionLocal
-from app.infrastructure.db.models import User, BoardColumn, Card, Board
-from app.infrastructure.db.models.board_member import BoardRole, BoardMember
+from app.infrastructure.db.models import Board, BoardColumn, Card, User
+from app.infrastructure.db.models.board_member import BoardMember, BoardRole
 from app.infrastructure.db.models.user import UserRole
 from app.modules.auth.security import PasswordService
 
@@ -14,9 +14,7 @@ PASSWORD = "password123"
 
 async def seed() -> None:
     async with AsyncSessionLocal() as db:
-        existing_user = await db.scalar(
-            select(User.id).limit(1)
-        )
+        existing_user = await db.scalar(select(User.id).limit(1))
 
         if existing_user is not None:
             print("Seed skipped: database already contains data")
@@ -166,9 +164,7 @@ async def seed() -> None:
                         )
                     )
 
-            for column_position, (column_title, cards) in enumerate(
-                board_info["columns"].items()
-            ):
+            for column_position, (column_title, cards) in enumerate(board_info["columns"].items()):
                 column = BoardColumn(
                     board_id=board.id,
                     title=column_title,
