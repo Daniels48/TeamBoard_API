@@ -34,10 +34,10 @@ TeamBoard — веб-приложение для управления задач
 ```bash
 git clone https://github.com/Daniels48/TeamBoard_API.git
 ```
+
 ```bash
 cd TeamBoard_API
 ```
-
 
 ### 2️⃣ Создать файл `.env`
 
@@ -58,6 +58,7 @@ make up
 ```
 
 **Windows:**
+
 ```bash
 docker compose up -d --build
 ```
@@ -102,7 +103,6 @@ http://localhost:8000
 http://localhost:8000/docs
 ```
 
-
 ## 🧪 Тесты
 
 Запустить все backend-тесты:
@@ -119,10 +119,10 @@ docker compose exec api pytest -v
 password123
 ```
 
-| Email | Роль | Статус |
-|---|---|---|
-| `admin@example.com` | Admin | Подтверждён |
-| `owner@example.com` | Владелец досок | Подтверждён |
-| `editor@example.com` | Editor | Подтверждён |
-| `viewer@example.com` | Viewer | Подтверждён |
-| `unverified@example.com` | User | Не подтверждён |
+| Email                    | Роль           | Статус         |
+|--------------------------|----------------|----------------|
+| `admin@example.com`      | Admin          | Подтверждён    |
+| `owner@example.com`      | Владелец досок | Подтверждён    |
+| `editor@example.com`     | Editor         | Подтверждён    |
+| `viewer@example.com`     | Viewer         | Подтверждён    |
+| `unverified@example.com` | User           | Не подтверждён |

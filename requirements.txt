@@ -1,6 +1,6 @@
 fastapi
 uvicorn[standard]
-SQLAlchemy
+sqlalchemy[asyncio]
 asyncpg
 alembic
 python-jose[cryptography]
